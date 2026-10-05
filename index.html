@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MediCare Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f0ece4;--sf:#faf8f4;--sf2:#f2ede6;--bd:#d8d0c4;--bd2:#b8afa3;
+  --tx:#1a1714;--mu:#6b6460;--li:#9c948e;
+  --gr:#2d5a3d;--gr2:#3d7a55;--grb:#e8f0eb;
+  --re:#8b2020;--reb:#fdf0f0;--re2:#c0392b;
+  --go:#8b6914;--gob:#fdf7e8;--go2:#d4a017;
+  --bl:#1a4a7a;--blb:#e8f0f8;--bl2:#2e6da4;
+  --sh:0 2px 12px rgba(26,23,20,.08);--sh2:0 8px 28px rgba(26,23,20,.13);
+  --r:4px;--r2:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{background:var(--gr);color:#fff;padding:0 18px;display:flex;align-items:center;justify-content:space-between;height:54px;box-shadow:0 2px 16px rgba(0,0,0,.22);flex-shrink:0;z-index:100}
+.logo{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;display:flex;align-items:center;gap:8px}
+.logo em{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:3px;padding:1px 7px;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-style:normal}
+.hbtns{display:flex;gap:4px}
+.hb{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);padding:5px 11px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:background .2s}
+.hb:hover{background:rgba(255,255,255,.22)}
+.hb.hi{background:rgba(255,255,255,.88);color:var(--gr)}
+.hb.hi:hover{background:#fff}
+.drchip{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 10px 3px 3px}
+.drav{width:26px;height:26px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.app{display:flex;flex:1;overflow:hidden}
+aside{width:224px;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sw{padding:10px 10px 4px;position:relative}
+.sw input{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:7px 10px 7px 27px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--tx);outline:none}
+.sw input:focus{border-color:var(--gr)}
+.sw-i{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--li)}
+.nlbl{font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--li);padding:10px 10px 4px}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);cursor:pointer;font-size:12px;color:var(--mu);border:none;background:none;width:100%;text-align:left;transition:all .15s}
+.ni:hover{background:var(--sf2);color:var(--tx)}
+.ni.on{background:var(--grb);color:var(--gr);font-weight:600}
+.ni .ic{width:15px;text-align:center;font-size:13px}
+.nbg{margin-left:auto;background:var(--gr);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:8px}
+.nbg.g{background:var(--go2)}
+.ndiv{height:1px;background:var(--bd);margin:6px 10px}
+.plist{flex:1;overflow-y:auto;padding:0 5px 10px}
+.pc{padding:7px 9px;border-radius:var(--r);cursor:pointer;border:1px solid transparent;margin-bottom:2px;transition:all .15s}
+.pc:hover{background:var(--sf2);border-color:var(--bd)}
+.pc.sel{background:var(--grb);border-color:var(--gr)}
+.pcn{font-size:11px;font-weight:600}
+.pcm{font-size:10px;color:var(--li);margin-top:1px}
+.pctg{display:inline-block;font-size:8px;font-weight:700;padding:1px 5px;border-radius:8px;margin-top:2px}
+.tg{background:var(--grb);color:var(--gr)}
+.tgr{background:var(--reb);color:var(--re)}
+.tgo{background:var(--gob);color:var(--go)}
+.tgb{background:var(--blb);color:var(--bl)}
+.tgg{background:var(--sf2);color:var(--mu);border:1px solid var(--bd)}
+main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.mhdr{background:var(--sf);border-bottom:1px solid var(--bd);padding:13px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.mtitle{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}
+.msub{font-size:11px;color:var(--mu);margin-top:1px}
+.mact{display:flex;gap:6px}
+.mcont{padding:18px 22px}
+.tabbar{display:flex;border-bottom:1px solid var(--bd);margin-bottom:16px}
+.tb{padding:8px 15px 7px;font-size:11px;font-weight:500;color:var(--mu);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all .2s}
+.tb:hover{color:var(--tx)}
+.tb.on{color:var(--gr);border-bottom-color:var(--gr);font-weight:700}
+.pane{display:none}.pane.on{display:block}
+.btn{padding:7px 13px;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;transition:all .2s}
+.bp{background:var(--gr);color:#fff}.bp:hover{background:var(--gr2)}
+.bs{background:var(--sf);color:var(--tx);border:1px solid var(--bd)}.bs:hover{background:var(--sf2)}
+.bd-btn{background:var(--reb);color:var(--re);border:1px solid #f0d0d0}
+.bg-btn{background:var(--gob);color:var(--go);border:1px solid #f0d890}
+.bb-btn{background:var(--blb);color:var(--bl);border:1px solid #c0d4e8}
+.btn-sm{padding:4px 9px;font-size:10px}
+.btn-xs{padding:2px 7px;font-size:10px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);padding:15px 17px;box-shadow:var(--sh)}
+.ct{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;margin-bottom:11px;padding-bottom:8px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);padding:12px 15px;box-shadow:var(--sh)}
+.sv{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
+.sl{font-size:10px;color:var(--mu);margin-top:2px}
+.sc{font-size:9px;font-weight:700;margin-top:4px;color:var(--gr)}
+.fg{margin-bottom:11px}
+.fr{display:flex;gap:9px}.fr .fg{flex:1}
+label{display:block;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--li);margin-bottom:4px}
+input,select,textarea{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:7px 9px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--tx);outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--gr);background:#fff}
+textarea{resize:vertical;min-height:58px;line-height:1.5}
+select{cursor:pointer}
+input[readonly]{background:var(--bg);color:var(--mu)}
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{padding:7px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--li);background:var(--sf2);border-bottom:1px solid var(--bd)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bd);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--sf2)}
+.tblw{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh)}
+.tag{display:inline-flex;align-items:center;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px}
+.alert{padding:8px 11px;border-radius:var(--r);font-size:11px;margin-bottom:11px;display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+.aw{background:var(--gob);color:var(--go);border:1px solid #f0d98a}
+.ai{background:var(--grb);color:var(--gr);border:1px solid #b8d8c4}
+.ae{background:var(--reb);color:var(--re);border:1px solid #f0c0c0}
+.tl{position:relative;padding-left:22px}
+.tl::before{content:'';position:absolute;left:5px;top:4px;bottom:4px;width:2px;background:var(--bd)}
+.tli{position:relative;margin-bottom:11px}
+.tld{position:absolute;left:-18px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--gr);border:2px solid var(--sf);box-shadow:0 0 0 2px var(--gr)}
+.tld.old{background:var(--bd2);box-shadow:0 0 0 2px var(--bd2)}
+.tlb{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:9px 13px}
+.tldate{font-size:10px;color:var(--li);font-weight:600;margin-bottom:2px}
+.tltype{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gr);margin-bottom:2px}
+.tltext{font-size:11px;line-height:1.5}
+.vrow{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:9px}
+.vb{background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:8px 9px;text-align:center}
+.vv{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+.vl{font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--li);font-weight:700;margin-top:2px}
+.vs{font-size:8px;font-weight:700;margin-top:2px}
+.vok{color:var(--gr)}.vwarn{color:var(--go2)}.vbad{color:var(--re)}
+.mo{position:fixed;inset:0;background:rgba(26,23,20,.5);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.mo.on{display:flex}
+.md{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);width:510px;max-width:95vw;max-height:88vh;overflow-y:auto;box-shadow:var(--sh2);animation:min .2s ease}
+.md.w{width:650px}
+@keyframes min{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+.mh{padding:15px 19px 11px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--sf);z-index:1}
+.mh h3{font-family:'Playfair Display',serif;font-size:16px;font-weight:700}
+.mb{padding:15px 19px}
+.mf{padding:11px 19px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:6px;position:sticky;bottom:0;background:var(--sf)}
+.bcl{background:none;border:none;font-size:17px;cursor:pointer;color:var(--li);line-height:1}
+.bcl:hover{color:var(--tx)}
+.mrw{display:flex;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd)}
+.mrw:last-child{border-bottom:none}
+.mrw input{flex:1}
+.brm{background:none;border:none;color:var(--li);cursor:pointer;font-size:14px;padding:2px}
+.brm:hover{color:var(--re)}
+.rxp{background:#fff;border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh2);margin-bottom:15px}
+.rxh{background:linear-gradient(135deg,var(--gr),var(--gr2));color:#fff;padding:15px 20px;display:flex;justify-content:space-between;align-items:flex-start}
+.rxh h3{font-family:'Playfair Display',serif;font-size:14px;font-weight:700}
+.rxh p{font-size:10px;opacity:.8;margin-top:1px}
+.rxsym{font-size:34px;font-family:'Playfair Display',serif;opacity:.35;font-weight:700;line-height:1}
+.rxb{padding:16px 20px}
+.rxpi{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;border-bottom:1px solid var(--bd);padding-bottom:11px;margin-bottom:11px}
+.rxf label{font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--li);font-weight:700}
+.rxfv{font-size:12px;font-weight:600;margin-top:1px}
+.rxmed{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px dashed var(--bd)}
+.rxmed:last-child{border-bottom:none}
+.rxnum{width:17px;height:17px;border-radius:50%;background:var(--grb);color:var(--gr);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.rxmn{font-size:12px;font-weight:700}
+.rxmd{font-size:10px;color:var(--mu);font-family:'DM Mono',monospace;margin-top:1px}
+.rxft{border-top:1px solid var(--bd);padding:11px 20px;display:flex;justify-content:space-between;align-items:flex-end;background:var(--sf2)}
+.rxfn{font-size:9px;color:var(--li);max-width:220px;line-height:1.5}
+.rxsig{text-align:right}
+.rxsl{width:130px;border-bottom:1px solid var(--tx);margin:0 0 3px auto}
+.rxslbl{font-size:8px;color:var(--li)}
+.appt{display:flex;align-items:center;gap:9px;padding:8px 11px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:5px}
+.appt:hover{border-color:var(--bd2)}
+.aptt{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--gr);min-width:43px}
+.apti{flex:1}
+.aptp{font-size:12px;font-weight:600}
+.apts{font-size:10px;color:var(--mu)}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.ch{text-align:center;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--li);padding:4px 0}
+.cd{min-height:68px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:5px;cursor:pointer}
+.cd:hover{border-color:var(--gr2)}
+.cd.tod{border-color:var(--gr);background:var(--grb)}
+.cd.om{opacity:.35}
+.cdn{font-size:10px;font-weight:600;color:var(--mu);margin-bottom:3px}
+.cd.tod .cdn{color:var(--gr);font-weight:700}
+.cev{font-size:8px;background:var(--gr);color:#fff;border-radius:2px;padding:1px 3px;margin-bottom:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cev.bl{background:var(--bl2)}
+.cev.re{background:var(--re2)}
+.barchart{display:flex;align-items:flex-end;gap:5px;height:90px;margin-top:6px}
+.bc{display:flex;flex-direction:column;align-items:center;flex:1;gap:2px}
+.bar{background:var(--gr);border-radius:2px 2px 0 0;width:100%;min-height:2px}
+.bar.bl{background:var(--bl2)}
+.bar.go{background:var(--go2)}
+.blbl{font-size:8px;color:var(--li);font-weight:600}
+.bval{font-size:9px;font-weight:700;color:var(--tx)}
+.prg{background:var(--sf2);border-radius:8px;height:5px;overflow:hidden;margin-top:3px}
+.pf{height:100%;border-radius:8px;background:var(--gr)}
+.pf.bl{background:var(--bl2)}
+.pf.go{background:var(--go2)}
+.phdr{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);padding:15px 18px;margin-bottom:14px;display:flex;align-items:flex-start;gap:13px;box-shadow:var(--sh)}
+.pav{width:46px;height:46px;background:var(--gr);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:16px;color:#fff;font-weight:700;flex-shrink:0}
+.pn{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.ps{font-size:11px;color:var(--mu);margin-top:2px}
+.ptags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;color:var(--mu);text-align:center;padding:28px}
+.eic{font-size:36px;margin-bottom:9px;opacity:.3}
+.empty h3{font-family:'Playfair Display',serif;font-size:15px;color:var(--tx);margin-bottom:4px}
+.empty p{font-size:12px;max-width:210px;line-height:1.6}
+.spbar{display:flex;gap:7px;margin-bottom:12px}
+.spbar input,.spbar select{font-size:11px}
+.toast{position:fixed;bottom:16px;right:16px;background:var(--gr);color:#fff;padding:8px 15px;border-radius:5px;font-size:11px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;animation:tin .25s ease;font-family:'DM Sans',sans-serif}
+.toast.err{background:var(--re2)}
+@keyframes tin{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+@media print{aside,header,.mhdr,.tabbar,.mact,.btn,.hb{display:none!important}.pane{display:block!important}.rxp{box-shadow:none;border:none}}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+/* ── RxDigital Module ─────────────────────────────────────── */
+.rxd-wrap{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+.rxd-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh)}
+.rxd-sh{padding:11px 15px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(15,76,117,.04),rgba(13,115,119,.04))}
+.rxd-si{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.rxd-si.bl{background:rgba(15,76,117,.1)}.rxd-si.tl{background:rgba(13,115,119,.1)}
+.rxd-st{font-family:'Playfair Display',serif;font-size:13px;font-weight:700}
+.rxd-ss{font-size:10px;color:var(--li);margin-top:1px}
+.rxd-body{padding:14px}
+.rxd-mc{display:flex;flex-direction:column;gap:11px}
+.rxd-med{background:var(--sf2);border:1.5px solid var(--bd);border-radius:var(--r2);overflow:hidden;transition:all .2s;animation:rxdIn .25s ease}
+@keyframes rxdIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+.rxd-med:hover{border-color:rgba(15,76,117,.3);box-shadow:var(--sh)}
+.rxd-mh{padding:8px 12px;background:linear-gradient(135deg,rgba(15,76,117,.05),rgba(13,115,119,.05));border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.rxd-mnum{display:flex;align-items:center;gap:7px}
+.rxd-mbadge{width:20px;height:20px;background:var(--bl2);border-radius:50%;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.rxd-mname{font-size:12px;font-weight:500;color:var(--tx)}
+.rxd-mb{padding:12px}
+.rxd-mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rxd-full{grid-column:1/-1}
+.rxd-ac{position:relative}
+.rxd-acinput{padding-right:30px!important}
+.rxd-acclear{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--li);cursor:pointer;font-size:12px;display:none;align-items:center;justify-content:center;width:16px;height:16px;line-height:1}
+.rxd-acclear.vis{display:flex}
+.rxd-acclear:hover{color:var(--re2)}
+.rxd-drop{position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1.5px solid var(--bl2);border-radius:var(--r);box-shadow:var(--sh2);z-index:600;max-height:190px;overflow-y:auto;display:none}
+.rxd-drop.open{display:block}
+.rxd-di{padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(226,232,240,.5);transition:background .1s}
+.rxd-di:last-child{border-bottom:none}
+.rxd-di:hover,.rxd-di.act{background:rgba(15,76,117,.06)}
+.rxd-dn{font-size:11px;font-weight:500;flex:1}
+.rxd-dn mark{background:rgba(27,108,168,.15);color:var(--bl2);font-weight:700;border-radius:2px;padding:0 1px}
+.rxd-dpill{font-size:9px;color:#0d7377;background:rgba(13,115,119,.08);padding:1px 6px;border-radius:8px;white-space:nowrap;flex-shrink:0}
+.rxd-nores{padding:10px;text-align:center;color:var(--li);font-size:11px}
+.rxd-nores span{display:block;font-weight:600;color:var(--bl2);margin-top:3px;font-size:10px}
+.rxd-dsel select{background:rgba(13,115,119,.04)!important;border-color:rgba(13,115,119,.4)!important;color:#0d7377!important;font-weight:500}
+.rxd-tp{background:linear-gradient(135deg,rgba(15,76,117,.04),rgba(13,115,119,.04));border:1.5px solid rgba(15,76,117,.15);border-radius:var(--r);padding:10px 12px;grid-column:1/-1;animation:rxdIn .2s ease}
+.rxd-tp-title{font-size:9px;font-weight:700;color:var(--bl2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.rxd-tgrid{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.rxd-res{background:var(--bl2);border-radius:var(--r);padding:6px 9px;color:#fff;text-align:center;min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:80px}
+.rxd-rl{font-size:7px;opacity:.7;text-transform:uppercase;letter-spacing:.05em}
+.rxd-rv{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;color:#7dd3fc;line-height:1.2}
+.rxd-ru{font-size:7px;opacity:.65}
+.rxd-prev{background:#fff;border:1px solid var(--bd);border-radius:var(--r);padding:11px;font-size:10px;color:var(--mu);line-height:1.7;min-height:90px;font-family:'DM Mono',monospace}
+.rxd-phl{border-bottom:2px solid var(--bl2);padding-bottom:6px;margin-bottom:6px}
+.rxd-pdr{font-size:11px;font-weight:700;color:var(--bl2)}
+.rxd-psp{font-size:9px;color:#0d7377}
+.rxd-empty{color:var(--bd2);font-style:italic;text-align:center;padding:12px 0;font-size:11px}
+.rxd-ghost{background:rgba(15,76,117,.06);color:var(--bl2);border:1.5px dashed rgba(15,76,117,.3);width:100%;padding:10px;border-radius:var(--r);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s;margin-top:2px}
+.rxd-ghost:hover{background:rgba(15,76,117,.12);border-color:var(--bl2)}
+.rxd-alg{background:var(--reb);border:1px solid #f0c0c0;border-left:3px solid var(--re2);border-radius:var(--r);padding:7px 10px;font-size:11px;color:var(--re);margin-bottom:10px;display:none}
+.qty-grp{display:grid;grid-template-columns:1fr 1fr;gap:7px;grid-column:1/-1}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">&#9877; MediCare Pro <em>v2</em></div>
+  <div class="hbtns">
+    <button class="hb hi" onclick="openMo('moPac')">+ Paciente</button>
+    <button class="hb" onclick="openMo('moCons')">+ Consulta</button>
+    <button class="hb" onclick="openMo('moCita')">+ Cita</button>
+    <button class="hb" onclick="openMo('moRx')">Rx Receta</button>
+    <button class="hb" onclick="openMo('moLab')">Lab</button>
+    <button class="hb" onclick="openMo('moFac')">Factura</button>
+  </div>
+  <div class="drchip"><div class="drav">JG</div><div style="font-size:11px;font-weight:600">Dr. Garcia</div></div>
+</header>
+<div class="app">
+<aside>
+  <div class="sw"><span class="sw-i">&#128269;</span><input type="text" id="ss" placeholder="Buscar paciente..." oninput="renderSide()"></div>
+  <div class="nlbl">Modulos</div>
+  <button class="ni on" onclick="go('dash',this)"><span class="ic">&#128202;</span>Dashboard</button>
+  <button class="ni" onclick="go('agenda',this)"><span class="ic">&#128197;</span>Agenda <span class="nbg" id="nb-agenda">0</span></button>
+  <button class="ni" onclick="go('pacs',this)"><span class="ic">&#128101;</span>Pacientes</button>
+  <button class="ni" onclick="go('cons',this)"><span class="ic">&#129786;</span>Consultas</button>
+  <button class="ni" onclick="go('rxs',this)"><span class="ic">&#128138;</span>Recetas</button>
+  <button class="ni" onclick="go('rxdigital',this)"><span class="ic">&#128221;</span>RxDigital</button>
+  <button class="ni" onclick="go('lab',this)"><span class="ic">&#128300;</span>Laboratorio <span class="nbg g" id="nb-lab">0</span></button>
+  <button class="ni" onclick="go('fac',this)"><span class="ic">&#128176;</span>Facturacion</button>
+  <button class="ni" onclick="go('est',this)"><span class="ic">&#128200;</span>Estadisticas</button>
+  <button class="ni" onclick="go('cfg',this)"><span class="ic">&#9881;</span>Configuracion</button>
+  <div class="ndiv"></div>
+  <div class="nlbl">Pacientes</div>
+  <div class="plist" id="sideList"></div>
+</aside>
+<main id="main"></main>
+</div>
+
+<!-- MODAL PACIENTE -->
+<div class="mo" id="moPac"><div class="md w">
+  <div class="mh"><h3>Nuevo Paciente</h3><button class="bcl" onclick="closeMo('moPac')">&#10005;</button></div>
+  <div class="mb">
+    <div class="fr"><div class="fg"><label>Nombre(s)</label><input id="np-n" placeholder="Nombres"></div><div class="fg"><label>Apellido(s)</label><input id="np-a" placeholder="Apellidos"></div></div>
+    <div class="fr"><div class="fg"><label>Cedula / ID</label><input id="np-ced" placeholder="8-123-456"></div><div class="fg"><label>Fecha Nac.</label><input type="date" id="np-dob"></div><div class="fg"><label>Sexo</label><select id="np-sex"><option value="">--</option><option>Masculino</option><option>Femenino</option><option>Otro</option></select></div></div>
+    <div class="fr"><div class="fg"><label>Telefono</label><input id="np-tel" placeholder="+507 6000-0000"></div><div class="fg"><label>Email</label><input id="np-em" placeholder="correo@ejemplo.com"></div><div class="fg"><label>Tipo Sangre</label><select id="np-sg"><option>--</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div></div>
+    <div class="fr"><div class="fg"><label>Ocupacion</label><input id="np-ocu" placeholder="Profesion"></div><div class="fg"><label>Estado Civil</label><select id="np-ec"><option>--</option><option>Soltero/a</option><option>Casado/a</option><option>Divorciado/a</option><option>Viudo/a</option></select></div></div>
+    <div class="fr"><div class="fg"><label>Seguro Medico</label><input id="np-seg" placeholder="Aseguradora"></div><div class="fg"><label>N. Poliza</label><input id="np-pol" placeholder="Numero"></div></div>
+    <div class="fg"><label>Direccion</label><input id="np-dir" placeholder="Direccion de residencia"></div>
+    <div class="fg"><label>Emergencia</label><input id="np-emg" placeholder="Nombre y telefono"></div>
+    <div class="fr"><div class="fg"><label>Alergias</label><textarea id="np-alg" placeholder="Medicamentos, alimentos..."></textarea></div><div class="fg"><label>Antecedentes</label><textarea id="np-ant" placeholder="Enfermedades, cirugias..."></textarea></div></div>
+    <div class="fg"><label>Antecedentes Familiares</label><textarea id="np-antf" placeholder="Enfermedades hereditarias..."></textarea></div>
+  </div>
+  <div class="mf"><button class="btn bs" onclick="closeMo('moPac')">Cancelar</button><button class="btn bp" onclick="savePac()">Guardar Paciente</button></div>
+</div></div>
+
+<!-- MODAL CONSULTA -->
+<div class="mo" id="moCons"><div class="md w">
+  <div class="mh"><h3>Nueva Consulta</h3><button class="bcl" onclick="closeMo('moCons')">&#10005;</button></div>
+  <div class="mb">
+    <div class="fr"><div class="fg"><label>Paciente</label><select id="nc-p"></select></div><div class="fg"><label>Fecha</label><input type="date" id="nc-f"></div><div class="fg"><label>Tipo</label><select id="nc-t"><option>Primera Consulta</option><option>Control</option><option>Seguimiento</option><option>Urgencia</option><option>Postoperatorio</option></select></div></div>
+    <div class="fg"><label>Motivo de Consulta</label><textarea id="nc-m" placeholder="Por que consulta el paciente?"></textarea></div>
+    <div style="margin-bottom:10px"><label style="display:block;margin-bottom:6px">Signos Vitales</label>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+      <div class="fg" style="margin:0"><label>TA</label><input id="nc-ta" placeholder="120/80"></div>
+      <div class="fg" style="margin:0"><label>FC lpm</label><input id="nc-fc" placeholder="72"></div>
+      <div class="fg" style="margin:0"><label>Temp C</label><input id="nc-tp" placeholder="36.5"></div>
+      <div class="fg" style="margin:0"><label>SpO2 %</label><input id="nc-o2" placeholder="98"></div>
+      <div class="fg" style="margin:0"><label>Glicemia</label><input id="nc-gl" placeholder="mg/dL"></div>
+      <div class="fg" style="margin:0"><label>Peso kg</label><input id="nc-pe" placeholder="70"></div>
+      <div class="fg" style="margin:0"><label>Talla cm</label><input id="nc-ta2" placeholder="170"></div>
+      <div class="fg" style="margin:0"><label>FR rpm</label><input id="nc-fr" placeholder="16"></div>
+      <div class="fg" style="margin:0"><label>P. Abdom.</label><input id="nc-pa" placeholder="cm"></div>
+    </div></div>
+    <div class="fr"><div class="fg"><label>Anamnesis</label><textarea id="nc-an" placeholder="Historia de la enfermedad actual..."></textarea></div><div class="fg"><label>Examen Fisico</label><textarea id="nc-ex" placeholder="Hallazgos por sistemas..."></textarea></div></div>
+    <div class="fg"><label>Diagnostico (CIE-10)</label><textarea id="nc-dx" placeholder="Diagnostico principal y secundarios..."></textarea></div>
+    <div class="fr"><div class="fg"><label>Examenes Solicitados</label><textarea id="nc-es" placeholder="Lab, imagenes..." style="min-height:48px"></textarea></div><div class="fg"><label>Plan / Indicaciones</label><textarea id="nc-pl" placeholder="Tratamiento, indicaciones..." style="min-height:48px"></textarea></div></div>
+    <div class="fr"><div class="fg"><label>Proxima Cita</label><input type="date" id="nc-px"></div><div class="fg"><label>Observaciones</label><input id="nc-ob" placeholder="Notas adicionales"></div></div>
+  </div>
+  <div class="mf"><button class="btn bs" onclick="closeMo('moCons')">Cancelar</button><button class="btn bp" onclick="saveCons()">Guardar Consulta</button></div>
+</div></div>
+
+<!-- MODAL CITA -->
+<div class="mo" id="moCita"><div class="md">
+  <div class="mh"><h3>Agendar Cita</h3><button class="bcl" onclick="closeMo('moCita')">&#10005;</button></div>
+  <div class="mb">
+    <div class="fg"><label>Paciente</label><select id="ci-p"></select></div>
+    <div class="fr"><div class="fg"><label>Fecha</label><input type="date" id="ci-f"></div><div class="fg"><label>Hora</label><input type="time" id="ci-h"></div></div>
+    <div class="fr"><div class="fg"><label>Tipo</label><select id="ci-t"><option>Primera Consulta</option><option>Control</option><option>Seguimiento</option><option>Procedimiento</option><option>Urgencia</option></select></div><div class="fg"><label>Duracion</label><select id="ci-d"><option>20 min</option><option>30 min</option><option>45 min</option><option>60 min</option></select></div></div>
+    <div class="fg"><label>Notas</label><textarea id="ci-n" placeholder="Motivo o indicaciones..." style="min-height:55px"></textarea></div>
+    <div class="fg"><label>Estado</label><select id="ci-e"><option>Programada</option><option>Confirmada</option></select></div>
+  </div>
+  <div class="mf"><button class="btn bs" onclick="closeMo('moCita')">Cancelar</button><button class="btn bp" onclick="saveCita()">Agendar</button></div>
+</div></div>
+
+<!-- MODAL RECETA -->
+<div class="mo" id="moRx"><div class="md w">
+  <div class="mh"><h3>Emitir Receta Medica</h3><button class="bcl" onclick="closeMo('moRx')">&#10005;</button></div>
+  <div class="mb">
+    <div class="fr"><div class="fg"><label>Paciente</label><select id="rx-p"></select></div><div class="fg"><label>Fecha</label><input type="date" id="rx-f"></div></div>
+    <div class="fg"><label>Diagnostico</label><input id="rx-dx" placeholder="Diagnostico o indicacion"></div>
+    <div style="margin-bottom:10px"><label style="display:block;margin-bottom:6px">Medicamentos</label>
+    <div id="rxmeds"><div class="mrw"><input placeholder="Medicamento" class="rn" style="flex:1.2"><input placeholder="Concentracion" class="rd" style="flex:.9"><input placeholder="Instruccion" class="ri" style="flex:1.3"><input placeholder="Dias" class="rdi" style="flex:.3;min-width:44px"><button class="brm" onclick="rmMed(this)">&#10005;</button></div></div>
+    <button class="btn bs btn-sm" style="margin-top:6px" onclick="addMed()">+ Agregar Medicamento</button></div>
+    <div class="fr"><div class="fg"><label>Indicaciones Generales</label><textarea id="rx-ind" placeholder="Dieta, reposo..." style="min-height:48px"></textarea></div><div class="fg"><label>Observaciones</label><textarea id="rx-obs" placeholder="Notas adicionales..." style="min-height:48px"></textarea></div></div>
+    <div class="fr"><div class="fg"><label>Valida Hasta</label><input type="date" id="rx-vd"></div><div class="fg"><label>N. Receta</label><input id="rx-num" readonly></div></div>
+  </div>
+  <div class="mf"><button class="btn bs" onclick="closeMo('moRx')">Cancelar</button><button class="btn bp" onclick="saveRx()">Emitir Receta</button></div>
+</div></div>
+
+<!-- MODAL LAB -->
+<div class="mo" id="moLab"><div class="md">
+  <div class="mh"><h3>Solicitar Examen</h3><button class="bcl" onclick="closeMo('moLab')">&#10005;</button></div>
+  <div class="mb">
+    <div class="fr"><div class="fg"><label>Paciente</label><select id="lb-p"></select></div><div class="fg"><label>Fecha</label><input type="date" id="lb-f"></div></div>
+    <div class="fg"><label>Tipo de Examen</label><select id="lb-t"><option>Hemograma Completo</option><option>Quimica Sanguinea</option><option>Perfil Lipidico</option><option>Glucemia en Ayunas</option><option>HbA1c</option><option>Funcion Renal</option><option>Funcion Hepatica</option><option>TSH / Tiroides</option><option>Orina Completa</option><option>PCR / VSG</option><option>Electrocardiograma</option><option>Rx de Torax</option><option>Ecosonograma</option><option>Tomografia</option><option>Otro</option></select></div>
+    <div class="fg"><label>Indicacion Clinica</label><input id="lb-ind" placeholder="Motivo de la solicitud"></div>
+    <div class="fg"><label>Estado</label><select id="lb-est"><option>Solicitado</option><option>En Proceso</option><option>Resultado Disponible</option></select></div>
+    <div class="fg"><label>Resultado (si disponible)</label><textarea id="lb-res" placeholder="Valores del resultado..."></textarea></div>
+    <div class="fg"><label>Interpretacion</label><textarea id="lb-int" placeholder="Interpretacion clinica..." style="min-height:48px"></textarea></div>
+  </div>
+  <div class="mf"><button class="btn bs" onclick="closeMo('moLab')">Cancelar</button><button class="btn bp" onclick="saveLab()">Guardar</button></div>
+</div></div>
+
+<!-- MODAL FACTURA -->
+<div class="mo" id="moFac"><div class="md w">
+  <div class="mh"><h3>Nueva Factura</h3><button class="bcl" onclick="closeMo('moFac')">&#10005;</button></div>
+  <div class="mb">
+    <div class="fr"><div class="fg"><label>Paciente</label><select id="fc-p"></select></div><div class="fg"><label>Fecha</label><input type="date" id="fc-f"></div><div class="fg"><label>Metodo Pago</label><select id="fc-mp"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option><option>Seguro</option><option>Mixto</option></select></div></div>
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <label style="display:block;margin-bottom:0">Servicios</label>
+        <span style="font-size:9px;color:var(--mu)">Marque <strong>Ex.</strong> para servicios exentos de ITBMS (ej: consultas medicas)</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:5px;align-items:center;font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--li);padding:0 0 4px;border-bottom:1px solid var(--bd);margin-bottom:4px">
+        <div>Descripcion</div><div style="text-align:center;min-width:36px">Cant.</div><div style="text-align:right;min-width:60px">Precio</div><div style="text-align:center;min-width:36px">Ex.</div><div></div>
+      </div>
+      <div id="facitems">
+        <div class="mrw">
+          <input placeholder="Consulta medica" class="fd" style="flex:2">
+          <input type="number" class="fq" value="1" style="flex:0;width:36px;min-width:36px;text-align:center" oninput="calcFac()">
+          <input type="number" class="fp" placeholder="0.00" style="flex:0;width:68px;min-width:68px;text-align:right" oninput="calcFac()">
+          <div style="display:flex;align-items:center;justify-content:center;min-width:36px"><input type="checkbox" class="fex" checked onchange="calcFac()" style="width:auto;background:none;border:none;padding:0" title="Exento de ITBMS"></div>
+          <button class="brm" onclick="rmFac(this)">&#10005;</button>
+        </div>
+      </div>
+      <button class="btn bs btn-sm" style="margin-top:6px" onclick="addFac()">+ Agregar Servicio</button>
+    </div>
+    <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:9px 11px;margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:10px;color:var(--mu)">Subtotal</span>
+        <span style="font-size:11px;font-weight:600" id="fc-sub">$0.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:10px;color:var(--mu)">Exento de ITBMS</span>
+        <span style="font-size:11px;font-weight:600;color:var(--gr)" id="fc-examt">$0.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:10px;color:var(--mu)">Base imponible (7% ITBMS)</span>
+        <span style="font-size:11px;font-weight:600" id="fc-base">$0.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:10px;color:var(--mu)">ITBMS (7%)</span>
+        <span style="font-size:11px;font-weight:600" id="fc-tax">$0.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--bd)">
+        <span style="font-size:12px;font-weight:700">TOTAL</span>
+        <span style="font-size:16px;font-weight:700;color:var(--gr)" id="fc-tot">$0.00</span>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:0"><label>Notas</label><input id="fc-n" placeholder="Opcional"></div>
+  </div>
+  <div class="mf"><button class="btn bs" onclick="closeMo('moFac')">Cancelar</button><button class="btn bp" onclick="saveFac()">Emitir Factura</button></div>
+</div></div>
+
+<!-- MODAL IMPRIMIR FACTURA -->
+<div class="mo" id="moPrintFac"><div class="md w" style="max-width:680px">
+  <div class="mh"><h3>Vista de Impresion</h3><button class="bcl" onclick="closeMo('moPrintFac')">&#10005;</button></div>
+  <div class="mb" id="printFacContent"></div>
+  <div class="mf">
+    <button class="btn bs" onclick="closeMo('moPrintFac')">Cerrar</button>
+    <button class="btn bp" onclick="printFac()">&#128424; Imprimir</button>
+  </div>
+</div></div>
+
+<script>
+var TODAY = new Date().toISOString().split('T')[0];
+var rxN = 4, facN = 4, curMod = 'dash', selPac = null;
+
+var CFG = {doc:'Dr. Jose Garcia',esp:'Medicina Interna',mp:'MP-12345',ruc:'8-123-4567-890',cli:'Centro Medico San Rafael',dir:'Calle 50, Marbella, Panama',tel:'(507) 200-0000',email:'clinica@sanrafael.com.pa'};
+
+var PACS = [
+  {id:1,n:'Maria',a:'Gonzalez',ced:'8-123-456',dob:'1975-03-15',sex:'Femenino',tel:'+507 6111-2222',em:'maria@gmail.com',sg:'A+',ec:'Casada',ocu:'Docente',seg:'Seguros Banistmo',pol:'SB-001234',dir:'El Carmen, Panama',emg:'Pedro Gonzalez 6111-3333',alg:'AINEs - rash cutaneo',ant:'Hipertension arterial desde 2015.',antf:'Madre diabetica. Padre HTA.'},
+  {id:2,n:'Carlos',a:'Rodriguez',ced:'4-567-890',dob:'1988-07-22',sex:'Masculino',tel:'+507 6333-4444',em:'carlos@hotmail.com',sg:'O+',ec:'Soltero',ocu:'Ingeniero',seg:'ASSA Seguros',pol:'AS-005678',dir:'San Francisco, Panama',emg:'Laura Rodriguez 6333-5555',alg:'Ninguna conocida',ant:'Sin antecedentes relevantes.',antf:'Abuelo diabetico.'},
+  {id:3,n:'Ana',a:'Martinez',ced:'6-789-123',dob:'1962-11-30',sex:'Femenino',tel:'+507 6555-6666',em:'ana.m@gmail.com',sg:'B+',ec:'Viuda',ocu:'Comerciante',seg:'Mapfre Panama',pol:'MP-009012',dir:'Bella Vista, Panama',emg:'Jorge Martinez 6555-7777',alg:'Penicilina - anafilaxia',ant:'Diabetes Mellitus tipo 2 (2010). Histerectomia (2018).',antf:'Madre diabetica.'},
+  {id:4,n:'Luis',a:'Perez',ced:'9-234-567',dob:'1955-05-18',sex:'Masculino',tel:'+507 6777-8888',em:'luis.p@gmail.com',sg:'AB+',ec:'Casado',ocu:'Jubilado',seg:'CSS',pol:'--',dir:'Juan Diaz, Panama',emg:'Carmen Perez 6777-9999',alg:'Sulfonamidas',ant:'HTA. Dislipidemia. IAM 2019.',antf:'Padre fallecido IAM.'}
+];
+
+var CONS = [
+  {id:1,pid:1,f:'2026-04-17',t:'Control',m:'Control de tension arterial',ta:'145/90',fc:'78',tp:'36.5',o2:'98',gl:'',pe:'68',ta2:'162',fr:'16',pa:'88',an:'Paciente refiere cefalea occipital leve. Cumple medicacion.',ex:'Lucida. TA elevada bilateral.',dx:'I10 - Hipertension esencial primaria',es:'',pl:'Ajuste Losartan 100mg. Control 15 dias.',px:'2026-05-02',ob:''},
+  {id:2,pid:2,f:'2026-04-12',t:'Primera Consulta',m:'Cefaleas frecuentes 3 meses',ta:'125/82',fc:'76',tp:'36.7',o2:'99',gl:'',pe:'82',ta2:'178',fr:'14',pa:'90',an:'Cefaleas tensionales 3-4 por semana.',ex:'BEG. Sin focalidad neurologica.',dx:'G44.3 - Cefalea tensional cronica',es:'TAC craneo simple',pl:'Ibuprofeno 400mg PRN. Relajacion.',px:'2026-05-15',ob:''},
+  {id:3,pid:3,f:'2026-04-14',t:'Seguimiento',m:'Control glicemico trimestral',ta:'128/80',fc:'80',tp:'36.8',o2:'97',gl:'180',pe:'75',ta2:'158',fr:'18',pa:'95',an:'Glucemias en ayunas 160-200 mg/dL.',ex:'Edema leve pretibial. Monofilamento normal.',dx:'E11 - Diabetes mellitus tipo 2',es:'HbA1c, microalbuminuria',pl:'Ajuste insulina 14UI. Dieta. Podologia.',px:'2026-05-14',ob:''},
+  {id:4,pid:4,f:'2026-04-10',t:'Control',m:'Control cardiaco post-IAM',ta:'130/82',fc:'68',tp:'36.6',o2:'98',gl:'',pe:'79',ta2:'170',fr:'15',pa:'99',an:'Sin angina. Bien tolerando medicacion.',ex:'Ritmo regular. Sin soplos.',dx:'I25.1 - Enfermedad coronaria con stent',es:'ECG, ecocardiograma',pl:'Continuar doble antiagregacion.',px:'2026-07-10',ob:''}
+];
+
+var RXS = [
+  {id:1,pid:1,f:'2026-04-17',num:'RX-2026-001',dx:'HTA',meds:[{n:'Losartan',d:'100mg',i:'1 tab manana',di:'30'},{n:'Amlodipino',d:'5mg',i:'1 tab noche',di:'30'}],ind:'Dieta hiposodica. Ejercicio 30 min/dia.',obs:'Control TA en 15 dias.',vd:'2026-05-17'},
+  {id:2,pid:3,f:'2026-04-14',num:'RX-2026-002',dx:'DM2',meds:[{n:'Insulina Glargina',d:'14 UI',i:'SC noche',di:'30'},{n:'Metformina',d:'850mg',i:'1 tab 2x dia',di:'30'}],ind:'Monitoreo glicemia 2x dia.',obs:'Control con HbA1c.',vd:'2026-05-14'},
+  {id:3,pid:4,f:'2026-04-10',num:'RX-2026-003',dx:'Enf. Coronaria',meds:[{n:'AAS',d:'100mg',i:'1 tab desayuno',di:'90'},{n:'Clopidogrel',d:'75mg',i:'1 tab desayuno',di:'90'},{n:'Atorvastatina',d:'80mg',i:'1 tab noche',di:'90'}],ind:'No suspender medicacion.',obs:'Eco en 3 meses.',vd:'2026-07-10'}
+];
+
+var CITAS = [
+  {id:1,pid:1,f:'2026-04-19',h:'10:00',t:'Control',d:'30 min',n:'Control mensual HTA',e:'Confirmada'},
+  {id:2,pid:2,f:'2026-04-19',h:'11:30',t:'Primera Consulta',d:'45 min',n:'Revision TAC',e:'Programada'},
+  {id:3,pid:4,f:'2026-04-19',h:'15:00',t:'Control',d:'30 min',n:'Control cardiaco',e:'Confirmada'},
+  {id:4,pid:3,f:'2026-05-14',h:'09:00',t:'Seguimiento',d:'30 min',n:'Control DM2 con HbA1c',e:'Programada'},
+  {id:5,pid:1,f:'2026-05-02',h:'10:30',t:'Control',d:'20 min',n:'Post-ajuste HTA',e:'Programada'}
+];
+
+var LABS = [
+  {id:1,pid:1,f:'2026-04-15',t:'Perfil Lipidico',ind:'Control HTA',est:'Resultado Disponible',res:'Colesterol: 198 mg/dL | HDL: 52 | LDL: 124 | Trigliceridos: 110',int:'Perfil lipidico aceptable.'},
+  {id:2,pid:3,f:'2026-04-14',t:'HbA1c',ind:'Control DM2',est:'Solicitado',res:'',int:''},
+  {id:3,pid:3,f:'2026-04-14',t:'Funcion Renal',ind:'Control DM2',est:'Resultado Disponible',res:'Creatinina: 1.1 | BUN: 18 | TFGe: 62 mL/min',int:'Funcion renal levemente reducida. Estadio G2.'},
+  {id:4,pid:4,f:'2026-04-10',t:'ECG',ind:'Post-IAM',est:'Resultado Disponible',res:'Ritmo sinusal. FC 68 lpm. Onda Q inferior.',int:'IAM inferior antiguo. Sin isquemia activa.'}
+];
+
+var FACS = [
+  {id:1,pid:1,f:'2026-04-17',num:'FAC-2026-001',mp:'Seguro',items:[{d:'Consulta medica control',q:1,p:45,ex:true}],sub:45,examt:45,base:0,tax:0,tot:45,n:'',est:'Pagada'},
+  {id:2,pid:2,f:'2026-04-12',num:'FAC-2026-002',mp:'Tarjeta',items:[{d:'Primera consulta',q:1,p:60,ex:true}],sub:60,examt:60,base:0,tax:0,tot:60,n:'',est:'Pagada'},
+  {id:3,pid:3,f:'2026-04-14',num:'FAC-2026-003',mp:'Efectivo',items:[{d:'Consulta seguimiento',q:1,p:45,ex:true},{d:'Solicitud HbA1c',q:1,p:25,ex:false}],sub:70,examt:45,base:25,tax:1.75,tot:71.75,n:'',est:'Pendiente'}
+];
+
+/* UTILS */
+function gv(id){var e=document.getElementById(id);return e?e.value:'';}
+function ge(id){return document.getElementById(id);}
+function sh(id,html){var e=ge(id);if(e)e.innerHTML=html;}
+function fD(s){if(!s)return '--';var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function age(dob){if(!dob)return '?';var b=new Date(dob),n=new Date(),a=n.getFullYear()-b.getFullYear();if(n.getMonth()<b.getMonth()||(n.getMonth()===b.getMonth()&&n.getDate()<b.getDate()))a--;return a;}
+function pat(id){return PACS.find(function(p){return p.id===id;});}
+function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,t){var e=document.createElement('div');e.className='toast'+(t==='err'?' err':'');e.textContent=msg;document.body.appendChild(e);setTimeout(function(){e.remove();},3000);}
+
+/* MODAL */
+function openMo(id){var e=ge(id);if(e)e.classList.add('on');}
+function closeMo(id){var e=ge(id);if(e)e.classList.remove('on');}
+document.addEventListener('click',function(ev){if(ev.target.classList.contains('mo'))ev.target.classList.remove('on');});
+
+/* SELECTS */
+function fillSel(){
+  var h=PACS.map(function(p){return '<option value="'+p.id+'">'+xe(p.n)+' '+xe(p.a)+'</option>';}).join('');
+  ['nc-p','ci-p','rx-p','lb-p','fc-p'].forEach(function(id){var e=ge(id);if(e)e.innerHTML=h;});
+}
+
+/* BADGES */
+function badges(){
+  var tc=CITAS.filter(function(c){return c.f===TODAY;}).length;
+  var pl=LABS.filter(function(l){return l.est==='Solicitado';}).length;
+  var nb=ge('nb-agenda');if(nb)nb.textContent=tc;
+  var nl=ge('nb-lab');if(nl)nl.textContent=pl;
+}
+
+/* SIDEBAR */
+function renderSide(){
+  var q=(ge('ss')?ge('ss').value:'').toLowerCase();
+  sh('sideList',PACS.filter(function(p){return (p.n+' '+p.a).toLowerCase().indexOf(q)>=0||p.ced.indexOf(q)>=0;}).map(function(p){
+    var nc=CONS.filter(function(c){return c.pid===p.id;}).length;
+    var alg=p.alg&&p.alg!=='Ninguna conocida';
+    var sel=selPac&&selPac.id===p.id?' sel':'';
+    return '<div class="pc'+sel+'" onclick="qSel('+p.id+')">'
+      +'<div class="pcn">'+xe(p.n)+' '+xe(p.a)+'</div>'
+      +'<div class="pcm">'+xe(p.ced)+' - '+age(p.dob)+'a - '+p.sex[0]+'</div>'
+      +(nc>0?'<span class="pctg tg">'+nc+' consultas</span>':'<span class="pctg tgo">Nuevo</span>')
+      +(alg?'<span class="pctg tgr" style="margin-left:3px">! Alergia</span>':'')
+      +'</div>';
+  }).join(''));
+}
+function qSel(id){selPac=pat(id);renderSide();showPac(id);}
+
+/* NAV */
+function go(mod,btn){
+  curMod=mod;
+  document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  var map={dash:rDash,agenda:rAgenda,pacs:rPacs,cons:rCons,rxs:rRxs,lab:rLab,fac:rFac,est:rEst,cfg:rCfg,rxdigital:rRxDigital};
+  if(map[mod])map[mod]();
+}
+function setMain(h){sh('main',h);}
+
+/* TABS */
+function swTab(tid,pid,btn){
+  var t=ge(tid);if(t)t.querySelectorAll('.tb').forEach(function(x){x.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  var p=ge(pid);if(!p)return;
+  p.parentElement.querySelectorAll('.pane').forEach(function(x){x.classList.remove('on');});
+  p.classList.add('on');
+}
+
+/* VITALS */
+function vitBox(c){
+  if(!c||!c.ta)return '';
+  var tv=parseInt(c.ta.split('/')[0]);
+  var ts=tv>140?['vbad','Alta']:tv>130?['vwarn','Elev']:['vok','OK'];
+  var os=parseInt(c.o2||'99')<94?['vbad','Baja']:parseInt(c.o2||'99')<96?['vwarn','Lim']:['vok','OK'];
+  var imc=c.pe&&c.ta2?(c.pe/Math.pow(c.ta2/100,2)).toFixed(1):null;
+  var is=!imc?['vok','--']:imc<18.5?['vwarn','Bajo']:imc<25?['vok','OK']:imc<30?['vwarn','Sobr']:['vbad','Obeso'];
+  return '<div class="vrow">'
+    +'<div class="vb"><div class="vv">'+xe(c.ta)+'</div><div class="vl">TA</div><div class="vs '+ts[0]+'">'+ts[1]+'</div></div>'
+    +'<div class="vb"><div class="vv">'+(c.fc||'--')+'</div><div class="vl">FC</div><div class="vs vok">OK</div></div>'
+    +'<div class="vb"><div class="vv">'+(c.tp||'--')+'</div><div class="vl">Temp</div><div class="vs vok">OK</div></div>'
+    +'<div class="vb"><div class="vv">'+(c.o2?c.o2+'%':'--')+'</div><div class="vl">SpO2</div><div class="vs '+os[0]+'">'+os[1]+'</div></div>'
+    +'<div class="vb"><div class="vv">'+(imc||'--')+'</div><div class="vl">IMC</div><div class="vs '+is[0]+'">'+is[1]+'</div></div>'
+    +'</div>'+(c.gl?'<div class="alert ai">Glicemia: <strong>'+xe(c.gl)+' mg/dL</strong></div>':'');
+}
+
+/* RX PAPER */
+function rxPaper(r,p){
+  var m2=r.meds.map(function(m,i){return '<div class="rxmed"><div class="rxnum">'+(i+1)+'</div><div><div class="rxmn">'+xe(m.n)+' <span style="font-weight:400;font-family:DM Mono,monospace;font-size:11px">'+xe(m.d)+'</span></div><div class="rxmd">'+xe(m.i)+(m.di?' - '+xe(m.di)+' dias':'')+'</div></div></div>';}).join('');
+  return '<div class="rxp">'
+    +'<div class="rxh"><div><h3>'+xe(CFG.cli)+'</h3><p>'+xe(CFG.doc)+' - '+xe(CFG.esp)+' - '+xe(CFG.mp)+'</p><p>'+xe(CFG.dir)+' - '+xe(CFG.tel)+'</p></div><div class="rxsym">Rx</div></div>'
+    +'<div class="rxb"><div class="rxpi">'
+    +'<div class="rxf"><label>Paciente</label><div class="rxfv">'+xe(p.n)+' '+xe(p.a)+'</div></div>'
+    +'<div class="rxf"><label>Cedula</label><div class="rxfv">'+xe(p.ced)+'</div></div>'
+    +'<div class="rxf"><label>Fecha</label><div class="rxfv">'+fD(r.f)+'</div></div>'
+    +'<div class="rxf"><label>N. Receta</label><div class="rxfv">'+xe(r.num)+'</div></div>'
+    +'<div class="rxf"><label>Diagnostico</label><div class="rxfv">'+xe(r.dx)+'</div></div>'
+    +'<div class="rxf"><label>Valida Hasta</label><div class="rxfv">'+(r.vd?fD(r.vd):'30 dias')+'</div></div>'
+    +'</div>'+m2
+    +(r.ind?'<div style="margin-top:9px;padding:8px 9px;background:var(--sf2);border-radius:3px;border-left:3px solid var(--gr);font-size:11px;line-height:1.6"><strong>Indicaciones:</strong> '+xe(r.ind)+'</div>':'')
+    +'</div>'
+    +'<div class="rxft"><div class="rxfn">Receta valida 30 dias. No valida con enmendaduras. RUC: '+xe(CFG.ruc)+'</div>'
+    +'<div class="rxsig"><div class="rxsl"></div><div class="rxslbl">'+xe(CFG.doc)+' - '+xe(CFG.mp)+'</div></div></div></div>';
+}
+
+/* CITA CARD */
+function citaCard(c){
+  var p=pat(c.pid);
+  var sc=c.e==='Confirmada'?'tg':c.e==='Programada'?'tgo':'tgg';
+  return '<div class="appt">'
+    +'<div class="aptt">'+xe(c.h)+'</div>'
+    +'<div class="apti"><div class="aptp">'+(p?xe(p.n)+' '+xe(p.a):'--')+'</div>'
+    +'<div class="apts">'+xe(c.t)+' - '+xe(c.d)+' - '+fD(c.f)+(c.n?' - '+xe(c.n):'')+'</div></div>'
+    +'<div style="display:flex;gap:4px;align-items:center">'
+    +'<span class="tag '+sc+'">'+xe(c.e)+'</span>'
+    +'<button class="btn bs btn-xs" onclick="markCita('+c.id+')">OK</button>'
+    +'<button class="btn bd-btn btn-xs" onclick="delCita('+c.id+')">X</button>'
+    +'</div></div>';
+}
+
+/* DASHBOARD */
+function rDash(){
+  var tc=CITAS.filter(function(c){return c.f===TODAY;});
+  var pl=LABS.filter(function(l){return l.est==='Solicitado';}).length;
+  var pf=FACS.filter(function(f){return f.est==='Pendiente';});
+  var rev=FACS.reduce(function(s,f){return s+f.tot;},0);
+  var ch=tc.length===0?'<div class="empty" style="min-height:100px"><div class="eic">&#128197;</div><p>Sin citas hoy</p></div>':tc.map(citaCard).join('');
+  var tl=CONS.slice(0,4).map(function(c,i){var p=pat(c.pid);return '<div class="tli"><div class="tld'+(i>0?' old':'')+'"></div><div class="tlb"><div class="tldate">'+fD(c.f)+'</div><div class="tltype">'+xe(c.t)+'</div><div class="tltext"><strong>'+(p?xe(p.n)+' '+xe(p.a):'--')+'</strong> - '+xe(c.dx.split('-')[0].trim())+'</div></div></div>';}).join('');
+  var lh=LABS.slice(0,4).map(function(l){var p=pat(l.pid);var sc=l.est==='Resultado Disponible'?'tg':l.est==='En Proceso'?'tgo':'tgb';return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bd)"><div><div style="font-size:12px;font-weight:600">'+xe(l.t)+'</div><div style="font-size:10px;color:var(--mu)">'+(p?xe(p.n)+' '+xe(p.a):'--')+' - '+fD(l.f)+'</div></div><span class="tag '+sc+'">'+xe(l.est)+'</span></div>';}).join('');
+  var bars=[['Ene',6],['Feb',9],['Mar',7],['Abr',CONS.length],['May',0],['Jun',0]];
+  var bh=bars.map(function(b){return '<div class="bc">'+(b[1]>0?'<div class="bval">'+b[1]+'</div>':'')+'<div class="bar'+(b[0]==='Abr'?'':' bl')+'" style="height:'+b[1]*9+'px'+(b[1]===0?';background:var(--bd)':'')+'">'+'</div><div class="blbl">'+b[0]+'</div></div>';}).join('');
+  setMain(
+    '<div class="mhdr"><div><div class="mtitle">Dashboard</div><div class="msub">Resumen del consultorio - '+fD(TODAY)+'</div></div></div>'
+    +'<div class="mcont">'
+    +'<div class="g4" style="margin-bottom:14px">'
+    +'<div class="stat"><div class="sv" style="color:var(--gr)">'+PACS.length+'</div><div class="sl">Pacientes</div><div class="sc">registrados</div></div>'
+    +'<div class="stat"><div class="sv" style="color:var(--bl2)">'+tc.length+'</div><div class="sl">Citas Hoy</div><div class="sc">'+tc.filter(function(c){return c.e==='Confirmada';}).length+' confirmadas</div></div>'
+    +'<div class="stat"><div class="sv" style="color:var(--go2)">'+pl+'</div><div class="sl">Labs Pendientes</div><div class="sc">'+(pl>0?'Requieren atencion':'Al dia')+'</div></div>'
+    +'<div class="stat"><div class="sv" style="color:var(--gr)">$'+rev.toFixed(0)+'</div><div class="sl">Ingresos</div><div class="sc">'+pf.length+' pendientes</div></div>'
+    +'</div>'
+    +'<div class="g2" style="margin-bottom:14px">'
+    +'<div class="card"><div class="ct">Citas de Hoy <span class="tag tg">'+tc.length+'</span></div>'+ch+'<div style="margin-top:9px;text-align:right"><button class="btn bs btn-sm" onclick="go(\'agenda\',null)">Ver agenda &rarr;</button></div></div>'
+    +'<div class="card"><div class="ct">Actividad Reciente</div><div class="tl">'+tl+'</div></div>'
+    +'</div>'
+    +'<div class="g2">'
+    +'<div class="card"><div class="ct">Laboratorio <button class="btn bs btn-sm" onclick="go(\'lab\',null)">Ver &rarr;</button></div>'+lh+'</div>'
+    +'<div class="card"><div class="ct">Consultas por Mes</div><div class="barchart">'+bh+'</div></div>'
+    +'</div></div>'
+  );
+}
+
+/* AGENDA */
+function rAgenda(){
+  var tc=CITAS.filter(function(c){return c.f===TODAY;}).sort(function(a,b){return a.h.localeCompare(b.h);});
+  var pc=CITAS.filter(function(c){return c.f>TODAY;}).sort(function(a,b){return (a.f+a.h).localeCompare(b.f+b.h);});
+  var cal=buildCal();
+  var eh=tc.length===0?'<div class="empty"><div class="eic">&#128197;</div><h3>Sin citas hoy</h3><p>No hay citas para hoy.</p><button class="btn bp" style="margin-top:9px" onclick="openMo(\'moCita\')">+ Agendar</button></div>':tc.map(citaCard).join('');
+  var ep=pc.length===0?'<div class="empty"><div class="eic">&#128197;</div><h3>Sin proximas citas</h3></div>':pc.map(citaCard).join('');
+  setMain(
+    '<div class="mhdr"><div><div class="mtitle">Agenda</div><div class="msub">Gestion de citas</div></div>'
+    +'<div class="mact"><button class="btn bp" onclick="openMo(\'moCita\')">+ Agendar Cita</button></div></div>'
+    +'<div class="mcont">'
+    +'<div class="tabbar" id="agT">'
+    +'<button class="tb on" onclick="swTab(\'agT\',\'ag-hoy\',this)">Hoy ('+tc.length+')</button>'
+    +'<button class="tb" onclick="swTab(\'agT\',\'ag-prox\',this)">Proximas ('+pc.length+')</button>'
+    +'<button class="tb" onclick="swTab(\'agT\',\'ag-cal\',this)">Calendario</button>'
+    +'</div>'
+    +'<div class="pane on" id="ag-hoy">'+eh+'</div>'
+    +'<div class="pane" id="ag-prox">'+ep+'</div>'
+    +'<div class="pane" id="ag-cal">'+cal+'</div>'
+    +'</div>'
+  );
+}
+function buildCal(){
+  var m=new Date().getMonth(),y=new Date().getFullYear();
+  var months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var days=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+  var first=new Date(y,m,1),last=new Date(y,m+1,0);
+  var h='<div style="font-family:Playfair Display,serif;font-size:16px;font-weight:700;margin-bottom:12px">'+months[m]+' '+y+'</div><div class="cg">';
+  days.forEach(function(d){h+='<div class="ch">'+d+'</div>';});
+  for(var i=0;i<first.getDay();i++)h+='<div class="cd om"></div>';
+  for(var d=1;d<=last.getDate();d++){
+    var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var dc=CITAS.filter(function(c){return c.f===ds;});
+    var isT=ds===TODAY;
+    h+='<div class="cd'+(isT?' tod':'')+'"><div class="cdn">'+d+'</div>';
+    dc.slice(0,2).forEach(function(c){var p=pat(c.pid);var cl=c.t==='Urgencia'?' re':c.t==='Primera Consulta'?' bl':'';h+='<div class="cev'+cl+'">'+(p?xe(p.n):'')+' '+xe(c.h)+'</div>';});
+    if(dc.length>2)h+='<div style="font-size:7px;color:var(--li)">+'+(dc.length-2)+' mas</div>';
+    h+='</div>';
+  }
+  return h+'</div>';
+}
+function markCita(id){var c=CITAS.find(function(x){return x.id===id;});if(c){c.e='Completada';rAgenda();toast('Cita completada');}}
+function delCita(id){if(confirm('Cancelar esta cita?')){CITAS=CITAS.filter(function(c){return c.id!==id;});rAgenda();badges();toast('Cita cancelada');}}
+
+/* PACIENTES */
+function rPacs(){
+  setMain('<div class="mhdr"><div><div class="mtitle">Pacientes</div><div class="msub">'+PACS.length+' registrados</div></div><div class="mact"><button class="btn bp" onclick="openMo(\'moPac\')">+ Nuevo Paciente</button></div></div><div class="mcont"><div class="spbar"><input type="text" id="psrch" placeholder="Buscar..." style="flex:1" oninput="filtPacs()"><select id="pfil" onchange="filtPacs()" style="width:140px"><option value="">Todos</option><option>Masculino</option><option>Femenino</option></select></div><div class="tblw" id="pacTbl"></div></div>');
+  filtPacs();
+}
+function filtPacs(){
+  var q=(ge('psrch')?ge('psrch').value:'').toLowerCase();
+  var f=ge('pfil')?ge('pfil').value:'';
+  var list=PACS.filter(function(p){return ((p.n+' '+p.a).toLowerCase().indexOf(q)>=0||p.ced.indexOf(q)>=0)&&(!f||p.sex===f);});
+  sh('pacTbl','<table class="tbl"><thead><tr><th>Paciente</th><th>Cedula</th><th>Edad</th><th>Telefono</th><th>Seguro</th><th>Ult. Consulta</th><th>Alergias</th><th></th></tr></thead><tbody>'+list.map(function(p){
+    var ulc=CONS.filter(function(c){return c.pid===p.id;}).sort(function(a,b){return b.f.localeCompare(a.f);})[0];
+    var alg=p.alg&&p.alg!=='Ninguna conocida';
+    return '<tr><td><div style="font-weight:600">'+xe(p.n)+' '+xe(p.a)+'</div><div style="font-size:9px;color:var(--mu)">'+xe(p.sex)+' - '+xe(p.sg)+'</div></td>'
+      +'<td style="font-family:DM Mono,monospace;font-size:10px">'+xe(p.ced)+'</td><td>'+age(p.dob)+'</td><td>'+xe(p.tel)+'</td>'
+      +'<td style="font-size:10px">'+xe(p.seg)+'</td>'
+      +'<td>'+(ulc?'<div style="font-size:10px">'+fD(ulc.f)+'</div><div style="font-size:9px;color:var(--mu)">'+xe(ulc.t)+'</div>':'<span style="color:var(--li);font-size:10px">--</span>')+'</td>'
+      +'<td>'+(alg?'<span class="tag tgr">! Si</span>':'<span class="tag tg">No</span>')+'</td>'
+      +'<td><div style="display:flex;gap:3px"><button class="btn bs btn-xs" onclick="showPac('+p.id+')">Ver</button><button class="btn bb-btn btn-xs" onclick="openConsFor('+p.id+')">Cons.</button><button class="btn bg-btn btn-xs" onclick="openRxFor('+p.id+')">Rx</button></div></td></tr>';
+  }).join('')+'</tbody></table>');
+}
+
+/* PATIENT DETAIL */
+function showPac(id){
+  var p=pat(id);if(!p)return;
+  selPac=p;curMod='pacs';
+  document.querySelectorAll('.ni').forEach(function(n){n.classList.toggle('on',n.textContent.trim().indexOf('Paciente')===0);});
+  renderSide();
+  var a=age(p.dob);
+  var pc=CONS.filter(function(c){return c.pid===p.id;}).sort(function(a,b){return b.f.localeCompare(a.f);});
+  var pr=RXS.filter(function(r){return r.pid===p.id;}).sort(function(a,b){return b.f.localeCompare(a.f);});
+  var pl=LABS.filter(function(l){return l.pid===p.id;}).sort(function(a,b){return b.f.localeCompare(a.f);});
+  var pci=CITAS.filter(function(c){return c.pid===p.id;}).sort(function(a,b){return a.f.localeCompare(b.f);});
+  var alg=p.alg&&p.alg!=='Ninguna conocida';
+  var phdr='<div class="phdr"><div class="pav">'+xe(p.n[0]+p.a[0])+'</div><div style="flex:1"><div class="pn">'+xe(p.n)+' '+xe(p.a)+'</div><div class="ps">'+xe(p.ced)+' - '+a+' anos - '+xe(p.sex)+' - '+xe(p.sg)+' - '+xe(p.tel)+'</div><div class="ptags">'+(p.seg?'<span class="tag tgb">'+xe(p.seg)+'</span>':'')+(alg?'<span class="tag tgr">! '+xe(p.alg)+'</span>':'<span class="tag tg">Sin alergias</span>')+(p.ocu?'<span class="tag tgg">'+xe(p.ocu)+'</span>':'')+'</div></div><div style="display:flex;gap:5px"><button class="btn bs btn-sm" onclick="openConsFor('+p.id+')">Consulta</button><button class="btn bp btn-sm" onclick="openRxFor('+p.id+')">Receta</button><button class="btn bg-btn btn-sm" onclick="openLabFor('+p.id+')">Lab</button></div></div>';
+  var tl=pc.length===0?'<p style="font-size:11px;color:var(--mu)">Sin consultas.</p>':pc.map(function(c,i){return '<div class="tli"><div class="tld'+(i>0?' old':'')+'"></div><div class="tlb"><div class="tldate">'+fD(c.f)+' - '+xe(c.t)+'</div><div class="tltype">'+xe(c.dx.split('-')[0].trim())+'</div><div class="tltext">'+xe(c.m)+'</div></div></div>';}).join('');
+  var res='<div class="g2" style="margin-bottom:13px"><div class="card"><div class="ct">Antecedentes</div><p style="font-size:11px;line-height:1.7">'+xe(p.ant||'Sin antecedentes.')+(p.antf?'<br><em style="color:var(--mu)">Familiares: '+xe(p.antf)+'</em>':'')+'</p></div><div class="card"><div class="ct">Ultimos Signos Vitales</div>'+(pc.length>0?vitBox(pc[0]):'<p style="font-size:11px;color:var(--mu)">Sin registros.</p>')+'</div></div><div class="card"><div class="ct">Historial Clinico</div><div class="tl">'+tl+'</div></div>';
+  var cPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openConsFor('+p.id+')">+ Nueva</button></div>'+(pc.length===0?'<div class="empty"><div class="eic">&#129786;</div><h3>Sin consultas</h3></div>':pc.map(function(c){return '<div class="card" style="margin-bottom:11px"><div class="ct">'+fD(c.f)+' - '+xe(c.t)+' <span class="tag tg">'+xe(c.dx.split(' ')[0])+'</span></div><div class="g2" style="margin-bottom:8px"><div><label>Motivo</label><p style="font-size:11px">'+xe(c.m)+'</p></div><div><label>Diagnostico</label><p style="font-size:11px">'+xe(c.dx)+'</p></div></div>'+vitBox(c)+(c.an?'<div style="margin-top:7px"><label>Anamnesis</label><p style="font-size:11px;line-height:1.5">'+xe(c.an)+'</p></div>':'')+(c.ex?'<div style="margin-top:5px"><label>Examen Fisico</label><p style="font-size:11px;line-height:1.5">'+xe(c.ex)+'</p></div>':'')+(c.pl?'<div style="margin-top:5px"><label>Plan</label><p style="font-size:11px;line-height:1.5">'+xe(c.pl)+'</p></div>':'')+'</div>';}).join(''));
+  var rPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openRxFor('+p.id+')">+ Nueva Receta</button></div>'+(pr.length===0?'<div class="empty"><div class="eic">&#128138;</div><h3>Sin recetas</h3></div>':pr.map(function(r){return rxPaper(r,p);}).join('')+'<button class="btn bs btn-sm" onclick="window.print()">Imprimir</button>');
+  var lPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bg-btn btn-sm" onclick="openLabFor('+p.id+')">+ Solicitar</button></div>'+(pl.length===0?'<div class="empty"><div class="eic">&#128300;</div><h3>Sin examenes</h3></div>':pl.map(function(l){var sc=l.est==='Resultado Disponible'?'tg':l.est==='En Proceso'?'tgo':'tgb';return '<div class="card" style="margin-bottom:9px"><div class="ct">'+xe(l.t)+' - '+fD(l.f)+' <span class="tag '+sc+'">'+xe(l.est)+'</span></div>'+(l.ind?'<p style="font-size:10px;color:var(--mu);margin-bottom:6px">'+xe(l.ind)+'</p>':'')+(l.res?'<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:3px;padding:7px;font-family:DM Mono,monospace;font-size:10px;margin-bottom:6px">'+xe(l.res)+'</div>':'')+(l.int?'<div class="alert ai">'+xe(l.int)+'</div>':'')+'</div>';}).join(''));
+  var ciPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bs btn-sm" onclick="openCitaFor('+p.id+')">+ Agendar</button></div>'+(pci.length===0?'<div class="empty"><div class="eic">&#128197;</div><h3>Sin citas</h3></div>':pci.map(citaCard).join(''));
+  var dPane='<div class="card"><div class="ct">Informacion Personal</div><div class="g3"><div class="fg"><label>Nombre</label><input value="'+xe(p.n)+'" readonly></div><div class="fg"><label>Apellido</label><input value="'+xe(p.a)+'" readonly></div><div class="fg"><label>Cedula</label><input value="'+xe(p.ced)+'" readonly></div><div class="fg"><label>Fecha Nac.</label><input value="'+xe(p.dob)+'" readonly></div><div class="fg"><label>Sexo</label><input value="'+xe(p.sex)+'" readonly></div><div class="fg"><label>Tipo Sangre</label><input value="'+xe(p.sg||'--')+'" readonly></div><div class="fg"><label>Telefono</label><input value="'+xe(p.tel)+'" readonly></div><div class="fg"><label>Email</label><input value="'+xe(p.em||'--')+'" readonly></div><div class="fg"><label>Seguro</label><input value="'+xe(p.seg||'--')+'" readonly></div></div><div class="fg"><label>Direccion</label><input value="'+xe(p.dir||'--')+'" readonly></div><div class="fg"><label>Emergencia</label><input value="'+xe(p.emg||'--')+'" readonly></div><div class="g2"><div class="fg"><label>Alergias</label><textarea readonly style="background:var(--bg)">'+xe(p.alg||'--')+'</textarea></div><div class="fg"><label>Antecedentes</label><textarea readonly style="background:var(--bg)">'+xe(p.ant||'--')+'</textarea></div></div><div class="fg"><label>Antecedentes Familiares</label><textarea readonly style="background:var(--bg)">'+xe(p.antf||'--')+'</textarea></div></div>';
+  setMain(
+    '<div class="mhdr"><div style="display:flex;align-items:center;gap:9px"><button class="btn bs btn-sm" onclick="rPacs()">&#8592; Volver</button><div><div class="mtitle">'+xe(p.n)+' '+xe(p.a)+'</div><div class="msub">Historia Clinica</div></div></div>'
+    +'<div class="mact"><button class="btn bs btn-sm" onclick="openConsFor('+p.id+')">Consulta</button><button class="btn bp btn-sm" onclick="openRxFor('+p.id+')">Receta</button></div></div>'
+    +'<div class="mcont">'+phdr+(alg?'<div class="alert ae">! ALERGIAS: '+xe(p.alg)+'</div>':'')
+    +'<div class="tabbar" id="ptT"><button class="tb on" onclick="swTab(\'ptT\',\'pt-res\',this)">Resumen</button><button class="tb" onclick="swTab(\'ptT\',\'pt-cons\',this)">Consultas ('+pc.length+')</button><button class="tb" onclick="swTab(\'ptT\',\'pt-rxs\',this)">Recetas ('+pr.length+')</button><button class="tb" onclick="swTab(\'ptT\',\'pt-labs\',this)">Lab ('+pl.length+')</button><button class="tb" onclick="swTab(\'ptT\',\'pt-citas\',this)">Citas ('+pci.length+')</button><button class="tb" onclick="swTab(\'ptT\',\'pt-data\',this)">Datos</button></div>'
+    +'<div class="pane on" id="pt-res">'+res+'</div>'
+    +'<div class="pane" id="pt-cons">'+cPane+'</div>'
+    +'<div class="pane" id="pt-rxs">'+rPane+'</div>'
+    +'<div class="pane" id="pt-labs">'+lPane+'</div>'
+    +'<div class="pane" id="pt-citas">'+ciPane+'</div>'
+    +'<div class="pane" id="pt-data">'+dPane+'</div>'
+    +'</div>'
+  );
+}
+
+/* CONSULTAS */
+function rCons(){
+  setMain('<div class="mhdr"><div><div class="mtitle">Consultas</div><div class="msub">'+CONS.length+' registradas</div></div><div class="mact"><button class="btn bp" onclick="openMo(\'moCons\')">+ Nueva</button></div></div><div class="mcont"><div class="spbar"><input type="text" id="csrch" placeholder="Buscar..." oninput="filtCons()" style="flex:1"><select id="cfil" onchange="filtCons()" style="width:150px"><option value="">Todos los tipos</option><option>Primera Consulta</option><option>Control</option><option>Seguimiento</option><option>Urgencia</option></select></div><div class="tblw" id="consTbl"></div></div>');
+  filtCons();
+}
+function filtCons(){
+  var q=(ge('csrch')?ge('csrch').value:'').toLowerCase();
+  var f=ge('cfil')?ge('cfil').value:'';
+  var list=CONS.filter(function(c){var p=pat(c.pid);return (!q||(p&&(p.n+' '+p.a).toLowerCase().indexOf(q)>=0)||c.dx.toLowerCase().indexOf(q)>=0)&&(!f||c.t===f);}).sort(function(a,b){return b.f.localeCompare(a.f);});
+  sh('consTbl','<table class="tbl"><thead><tr><th>Fecha</th><th>Paciente</th><th>Tipo</th><th>Diagnostico</th><th>TA</th><th>Plan</th><th></th></tr></thead><tbody>'+list.map(function(c){var p=pat(c.pid);var tc=c.t==='Urgencia'?'tgr':c.t==='Primera Consulta'?'tgb':'tg';return '<tr><td style="font-family:DM Mono,monospace;font-size:10px">'+fD(c.f)+'</td><td style="font-weight:600;font-size:11px">'+(p?xe(p.n)+' '+xe(p.a):'--')+'</td><td><span class="tag '+tc+'">'+xe(c.t)+'</span></td><td style="font-size:10px;max-width:160px">'+xe(c.dx)+'</td><td style="font-family:DM Mono,monospace;font-size:10px">'+(c.ta||'--')+'</td><td style="font-size:10px;color:var(--mu)">'+(c.pl?xe(c.pl.substring(0,50))+(c.pl.length>50?'...':''):'--')+'</td><td><button class="btn bs btn-xs" onclick="showPac('+c.pid+')">Ver Pte.</button></td></tr>';}).join('')+'</tbody></table>');
+}
+
+/* RECETAS */
+function rRxs(){
+  var list=RXS.slice().sort(function(a,b){return b.f.localeCompare(a.f);});
+  setMain('<div class="mhdr"><div><div class="mtitle">Recetas Medicas</div><div class="msub">'+RXS.length+' emitidas</div></div><div class="mact"><button class="btn bp" onclick="openMo(\'moRx\')">Rx Nueva Receta</button></div></div><div class="mcont"><div class="tblw"><table class="tbl"><thead><tr><th>N. Receta</th><th>Fecha</th><th>Paciente</th><th>Diagnostico</th><th>Medicamentos</th><th>Valida</th><th></th></tr></thead><tbody>'+list.map(function(r){var p=pat(r.pid);return '<tr><td style="font-family:DM Mono,monospace;font-size:10px;font-weight:600;color:var(--gr)">'+xe(r.num)+'</td><td style="font-size:10px">'+fD(r.f)+'</td><td style="font-weight:600;font-size:11px">'+(p?xe(p.n)+' '+xe(p.a):'--')+'</td><td style="font-size:10px">'+xe(r.dx)+'</td><td style="font-size:10px">'+r.meds.map(function(m){return xe(m.n);}).join(', ')+'</td><td style="font-size:10px">'+(r.vd?fD(r.vd):'--')+'</td><td><button class="btn bs btn-xs" onclick="showPac('+r.pid+')">Ver</button></td></tr>';}).join('')+'</tbody></table></div></div>');
+}
+
+/* LABORATORIO */
+function rLab(){
+  var list=LABS.slice().sort(function(a,b){return b.f.localeCompare(a.f);});
+  var pend=LABS.filter(function(l){return l.est==='Solicitado';}).length;
+  var disp=LABS.filter(function(l){return l.est==='Resultado Disponible';}).length;
+  setMain('<div class="mhdr"><div><div class="mtitle">Laboratorio</div><div class="msub">Examenes y resultados</div></div><div class="mact"><button class="btn bg-btn" onclick="openMo(\'moLab\')">Lab Solicitar Examen</button></div></div><div class="mcont"><div class="g3" style="margin-bottom:14px"><div class="stat"><div class="sv" style="color:var(--gr)">'+LABS.length+'</div><div class="sl">Total Examenes</div></div><div class="stat"><div class="sv" style="color:var(--go2)">'+disp+'</div><div class="sl">Con Resultado</div></div><div class="stat"><div class="sv" style="color:var(--bl2)">'+pend+'</div><div class="sl">Pendientes</div></div></div><div class="tblw"><table class="tbl"><thead><tr><th>Fecha</th><th>Paciente</th><th>Examen</th><th>Indicacion</th><th>Estado</th><th>Resultado</th><th></th></tr></thead><tbody>'+list.map(function(l){var p=pat(l.pid);var sc=l.est==='Resultado Disponible'?'tg':l.est==='En Proceso'?'tgo':'tgb';return '<tr><td style="font-size:10px;font-family:DM Mono,monospace">'+fD(l.f)+'</td><td style="font-weight:600;font-size:11px">'+(p?xe(p.n)+' '+xe(p.a):'--')+'</td><td style="font-size:11px">'+xe(l.t)+'</td><td style="font-size:10px;color:var(--mu)">'+(l.ind||'--')+'</td><td><span class="tag '+sc+'">'+xe(l.est)+'</span></td><td style="font-size:10px;color:var(--mu)">'+(l.res?xe(l.res.substring(0,35))+'...':'Sin resultado')+'</td><td><button class="btn bs btn-xs" onclick="showPac('+l.pid+')">Ver Pte.</button></td></tr>';}).join('')+'</tbody></table></div></div>');
+}
+
+/* FACTURACION */
+function rFac(){
+  var list=FACS.slice().sort(function(a,b){return b.f.localeCompare(a.f);});
+  var rev=FACS.reduce(function(s,f){return s+f.tot;},0);
+  var pend=FACS.filter(function(f){return f.est==='Pendiente';});
+  setMain('<div class="mhdr"><div><div class="mtitle">Facturacion</div><div class="msub">Gestion de pagos</div></div><div class="mact"><button class="btn bp" onclick="openMo(\'moFac\')">Nueva Factura</button></div></div>'
+    +'<div class="mcont">'
+    +'<div class="g4" style="margin-bottom:14px">'
+    +'<div class="stat"><div class="sv" style="color:var(--gr)">$'+rev.toFixed(2)+'</div><div class="sl">Total Facturado</div></div>'
+    +'<div class="stat"><div class="sv" style="color:var(--gr)">'+FACS.filter(function(f){return f.est==='Pagada';}).length+'</div><div class="sl">Pagadas</div></div>'
+    +'<div class="stat"><div class="sv" style="color:var(--go2)">'+pend.length+'</div><div class="sl">Pendientes</div><div class="sc">$'+pend.reduce(function(s,f){return s+f.tot;},0).toFixed(2)+'</div></div>'
+    +'<div class="stat"><div class="sv" style="color:var(--bl2)">$'+(rev/(FACS.length||1)).toFixed(0)+'</div><div class="sl">Ticket Promedio</div></div>'
+    +'</div>'
+    +'<div class="tblw"><table class="tbl"><thead><tr><th>N. Factura</th><th>Fecha</th><th>Paciente</th><th>Servicios</th><th>Metodo</th><th>Exento</th><th>ITBMS</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody>'
+    +list.map(function(f){
+      var p=pat(f.pid);
+      var sc=f.est==='Pagada'?'tg':'tgo';
+      var examt=f.examt||0;
+      var tax=f.tax||0;
+      return '<tr>'
+        +'<td style="font-family:DM Mono,monospace;font-size:10px;font-weight:600;color:var(--gr)">'+xe(f.num)+'</td>'
+        +'<td style="font-size:10px">'+fD(f.f)+'</td>'
+        +'<td style="font-weight:600;font-size:11px">'+(p?xe(p.n)+' '+xe(p.a):'--')+'</td>'
+        +'<td style="font-size:10px">'+f.items.map(function(i){return xe(i.d)+(i.ex?'<span style="color:var(--gr);font-size:8px;margin-left:3px">*</span>':'');}).join(', ').substring(0,45)+'</td>'
+        +'<td><span class="tag tgg">'+xe(f.mp)+'</span></td>'
+        +'<td style="font-size:10px;color:var(--gr)">$'+examt.toFixed(2)+'</td>'
+        +'<td style="font-size:10px">$'+tax.toFixed(2)+'</td>'
+        +'<td style="font-weight:700;font-size:12px;color:var(--gr)">$'+f.tot.toFixed(2)+'</td>'
+        +'<td><span class="tag '+sc+'">'+xe(f.est)+'</span></td>'
+        +'<td><div style="display:flex;gap:3px">'
+        +(f.est==='Pendiente'?'<button class="btn bs btn-xs" onclick="pagarFac('+f.id+')">Cobrar</button>':'')
+        +'<button class="btn bb-btn btn-xs" onclick="verFactura('+f.id+')">&#128424;</button>'
+        +'</div></td>'
+        +'</tr>';
+    }).join('')+'</tbody></table></div>'
+    +'<div style="font-size:10px;color:var(--li);margin-top:8px">* Servicio exento de ITBMS (ej: consultas medicas - Ley Tributaria Panama)</div>'
+    +'</div>');
+}
+function pagarFac(id){var f=FACS.find(function(x){return x.id===id;});if(f){f.est='Pagada';rFac();toast('Factura pagada');}}
+
+function verFactura(id){
+  var f=FACS.find(function(x){return x.id===id;});
+  if(!f)return;
+  var p=pat(f.pid);
+  var examt=f.examt||0;
+  var base=f.base||0;
+  var tax=f.tax||0;
+  var html='<div id="facPrintArea" style="font-family:DM Sans,sans-serif;max-width:600px;margin:0 auto">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--gr);padding-bottom:16px;margin-bottom:16px">'
+    +'<div>'
+    +'<div style="font-family:Playfair Display,serif;font-size:22px;font-weight:700;color:var(--gr)">FACTURA</div>'
+    +'<div style="font-size:11px;color:var(--mu);margin-top:2px">N. '+xe(f.num)+'</div>'
+    +'<div style="font-size:11px;color:var(--mu)">Fecha: '+fD(f.f)+'</div>'
+    +'<div style="font-size:11px;color:var(--mu)">Estado: <strong style="color:'+(f.est==='Pagada'?'var(--gr)':'var(--go2)')+'">'+xe(f.est)+'</strong></div>'
+    +'</div>'
+    +'<div style="text-align:right">'
+    +'<div style="font-weight:700;font-size:14px">'+xe(CFG.cli)+'</div>'
+    +'<div style="font-size:11px;color:var(--mu)">'+xe(CFG.doc)+' - '+xe(CFG.esp)+'</div>'
+    +'<div style="font-size:11px;color:var(--mu)">'+xe(CFG.dir)+'</div>'
+    +'<div style="font-size:11px;color:var(--mu)">Tel: '+xe(CFG.tel)+'</div>'
+    +'<div style="font-size:11px;color:var(--mu)">RUC: '+xe(CFG.ruc)+'</div>'
+    +'</div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;background:var(--sf2);border-radius:var(--r);padding:12px 14px;margin-bottom:16px">'
+    +'<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--li);font-weight:700;margin-bottom:3px">Paciente</div><div style="font-weight:600;font-size:13px">'+(p?xe(p.n)+' '+xe(p.a):'--')+'</div>'+(p?'<div style="font-size:11px;color:var(--mu)">Ced: '+xe(p.ced)+'</div>':'')+'</div>'
+    +'<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--li);font-weight:700;margin-bottom:3px">Metodo de Pago</div><div style="font-size:13px;font-weight:600">'+xe(f.mp)+'</div></div>'
+    +'</div>'
+    +'<table style="width:100%;border-collapse:collapse;margin-bottom:16px">'
+    +'<thead><tr style="background:var(--gr);color:#fff">'
+    +'<th style="padding:8px 10px;text-align:left;font-size:10px;letter-spacing:.5px">DESCRIPCION</th>'
+    +'<th style="padding:8px 10px;text-align:center;font-size:10px">CANT.</th>'
+    +'<th style="padding:8px 10px;text-align:right;font-size:10px">PRECIO U.</th>'
+    +'<th style="padding:8px 10px;text-align:center;font-size:10px">ITBMS</th>'
+    +'<th style="padding:8px 10px;text-align:right;font-size:10px">TOTAL</th>'
+    +'</tr></thead><tbody>'
+    +f.items.map(function(item,i){
+      var line=item.p*item.q;
+      return '<tr style="border-bottom:1px solid var(--bd);background:'+(i%2===0?'#fff':'var(--sf2)')+'">'
+        +'<td style="padding:8px 10px;font-size:11px">'+xe(item.d)+'</td>'
+        +'<td style="padding:8px 10px;text-align:center;font-size:11px">'+item.q+'</td>'
+        +'<td style="padding:8px 10px;text-align:right;font-size:11px;font-family:DM Mono,monospace">$'+item.p.toFixed(2)+'</td>'
+        +'<td style="padding:8px 10px;text-align:center;font-size:10px">'+(item.ex?'<span style="color:var(--gr);font-weight:700">Exento</span>':'7%')+'</td>'
+        +'<td style="padding:8px 10px;text-align:right;font-size:11px;font-weight:600;font-family:DM Mono,monospace">$'+line.toFixed(2)+'</td>'
+        +'</tr>';
+    }).join('')
+    +'</tbody></table>'
+    +'<div style="display:flex;justify-content:flex-end">'
+    +'<div style="min-width:260px">'
+    +'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px"><span style="color:var(--mu)">Subtotal</span><span style="font-family:DM Mono,monospace">$'+f.sub.toFixed(2)+'</span></div>'
+    +(examt>0?'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px"><span style="color:var(--gr)">Exento de ITBMS</span><span style="font-family:DM Mono,monospace;color:var(--gr)">$'+examt.toFixed(2)+'</span></div>':'')
+    +(base>0?'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px"><span style="color:var(--mu)">Base imponible</span><span style="font-family:DM Mono,monospace">$'+base.toFixed(2)+'</span></div>':'')
+    +'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px"><span style="color:var(--mu)">ITBMS (7%)</span><span style="font-family:DM Mono,monospace">$'+tax.toFixed(2)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:9px 0 5px;font-weight:700;font-size:14px;color:var(--gr)"><span>TOTAL</span><span style="font-family:DM Mono,monospace">$'+f.tot.toFixed(2)+'</span></div>'
+    +'</div></div>'
+    +(examt>0?'<div style="margin-top:14px;padding:8px 10px;background:var(--grb);border-radius:var(--r);border-left:3px solid var(--gr);font-size:10px;color:var(--gr)">Los servicios marcados como <strong>Exento</strong> estan exentos de ITBMS conforme a la legislacion tributaria de la Republica de Panama (Art. 1057-V del Codigo Fiscal).</div>':'')
+    +(f.n?'<div style="margin-top:10px;font-size:10px;color:var(--mu)"><strong>Notas:</strong> '+xe(f.n)+'</div>':'')
+    +'<div style="margin-top:20px;display:flex;justify-content:flex-end">'
+    +'<div style="text-align:right"><div style="width:160px;border-bottom:1px solid var(--tx);margin-bottom:4px"></div><div style="font-size:10px;color:var(--li)">'+xe(CFG.doc)+' - '+xe(CFG.mp)+'</div></div>'
+    +'</div></div>';
+  sh('printFacContent',html);
+  openMo('moPrintFac');
+}
+
+function printFac(){
+  var content=ge('facPrintArea');
+  if(!content)return;
+  var w=window.open('','_blank','width=750,height:900');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Factura</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:DM Sans,sans-serif;padding:32px;color:#1a1714}'
+    +':root{--gr:#2d5a3d;--gr2:#3d7a55;--grb:#e8f0eb;--bd:#d8d0c4;--sf2:#f2ede6;--mu:#6b6460;--li:#9c948e;--go2:#d4a017;--r:4px}'
+    +'@media print{body{padding:20px}button{display:none}}</style></head><body>'
+    +content.outerHTML
+    +'</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},600);
+}
+
+/* ESTADISTICAS */
+function rEst(){
+  var byT={};CONS.forEach(function(c){byT[c.t]=(byT[c.t]||0)+1;});
+  var sM=PACS.filter(function(p){return p.sex==='Masculino';}).length;
+  var sF=PACS.filter(function(p){return p.sex==='Femenino';}).length;
+  var rev=FACS.reduce(function(s,f){return s+f.tot;},0);
+  var tHtml=Object.keys(byT).map(function(t){var n=byT[t],pct=Math.round(n/CONS.length*100);return '<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span>'+xe(t)+'</span><span style="font-weight:700">'+n+' ('+pct+'%)</span></div><div class="prg"><div class="pf" style="width:'+pct+'%"></div></div></div>';}).join('');
+  var b1=[['Ene',6],['Feb',9],['Mar',7],['Abr',CONS.length],['May',0],['Jun',0]];
+  var bh1=b1.map(function(b){return '<div class="bc">'+(b[1]>0?'<div class="bval">'+b[1]+'</div>':'')+'<div class="bar bl" style="height:'+b[1]*8+'px'+(b[1]===0?';background:var(--bd)':'')+'">'+'</div><div class="blbl">'+b[0]+'</div></div>';}).join('');
+  var b2=[['Ene',320],['Feb',480],['Mar',390],['Abr',Math.round(rev)],['May',0],['Jun',0]];
+  var bh2=b2.map(function(b){return '<div class="bc">'+(b[1]>0?'<div class="bval" style="font-size:8px">$'+b[1]+'</div>':'')+'<div class="bar go" style="height:'+Math.min(Math.round(b[1]/5),90)+'px'+(b[1]===0?';background:var(--bd)':'')+'">'+'</div><div class="blbl">'+b[0]+'</div></div>';}).join('');
+  setMain('<div class="mhdr"><div><div class="mtitle">Estadisticas</div><div class="msub">Analisis del consultorio</div></div></div><div class="mcont"><div class="g4" style="margin-bottom:14px"><div class="stat"><div class="sv" style="color:var(--gr)">'+PACS.length+'</div><div class="sl">Total Pacientes</div></div><div class="stat"><div class="sv" style="color:var(--bl2)">'+CONS.length+'</div><div class="sl">Consultas</div></div><div class="stat"><div class="sv" style="color:var(--go2)">'+RXS.length+'</div><div class="sl">Recetas</div></div><div class="stat"><div class="sv" style="color:var(--gr)">$'+rev.toFixed(0)+'</div><div class="sl">Ingresos</div></div></div><div class="g2" style="margin-bottom:14px"><div class="card"><div class="ct">Distribucion por Sexo</div><div style="display:flex;gap:18px;justify-content:center;padding:10px 0"><div style="text-align:center"><div style="font-size:26px;font-family:Playfair Display,serif;font-weight:700;color:var(--bl2)">'+sM+'</div><div style="font-size:10px;color:var(--mu)">Masculino</div><div style="font-size:10px;font-weight:700;color:var(--bl2)">'+Math.round(sM/PACS.length*100)+'%</div></div><div style="width:1px;background:var(--bd)"></div><div style="text-align:center"><div style="font-size:26px;font-family:Playfair Display,serif;font-weight:700;color:var(--gr)">'+sF+'</div><div style="font-size:10px;color:var(--mu)">Femenino</div><div style="font-size:10px;font-weight:700;color:var(--gr)">'+Math.round(sF/PACS.length*100)+'%</div></div></div><div class="prg" style="margin-bottom:4px"><div class="pf bl" style="width:'+Math.round(sM/PACS.length*100)+'%"></div></div><div class="prg"><div class="pf" style="width:'+Math.round(sF/PACS.length*100)+'%"></div></div></div><div class="card"><div class="ct">Tipos de Consulta</div>'+tHtml+'</div></div><div class="g2"><div class="card"><div class="ct">Consultas por Mes</div><div class="barchart">'+bh1+'</div></div><div class="card"><div class="ct">Ingresos por Mes</div><div class="barchart">'+bh2+'</div></div></div></div>');
+}
+
+/* CONFIG */
+function rCfg(){
+  setMain('<div class="mhdr"><div><div class="mtitle">Configuracion</div><div class="msub">Datos del medico y la clinica</div></div><div class="mact"><button class="btn bp" onclick="saveCfg()">Guardar Cambios</button></div></div>'
+    +'<div class="mcont">'
+    +'<div class="g2" style="margin-bottom:14px">'
+    +'<div class="card"><div class="ct">Datos del Medico</div>'
+    +'<div class="fg"><label>Nombre del Medico</label><input id="cfg-doc" value="'+xe(CFG.doc)+'"></div>'
+    +'<div class="fg"><label>Especialidad</label><input id="cfg-esp" value="'+xe(CFG.esp)+'"></div>'
+    +'<div class="fr"><div class="fg"><label>Matricula</label><input id="cfg-mp" value="'+xe(CFG.mp)+'"></div><div class="fg"><label>RUC</label><input id="cfg-ruc" value="'+xe(CFG.ruc)+'"></div></div>'
+    +'</div>'
+    +'<div class="card"><div class="ct">Datos de la Clinica</div>'
+    +'<div class="fg"><label>Nombre</label><input id="cfg-cli" value="'+xe(CFG.cli)+'"></div>'
+    +'<div class="fg"><label>Direccion</label><input id="cfg-dir" value="'+xe(CFG.dir)+'"></div>'
+    +'<div class="fr"><div class="fg"><label>Telefono</label><input id="cfg-tel" value="'+xe(CFG.tel)+'"></div><div class="fg"><label>Email</label><input id="cfg-em" value="'+xe(CFG.email)+'"></div></div>'
+    +'</div>'
+    +'</div>'
+    +'<div class="card" style="margin-bottom:14px"><div class="ct">Configuracion de Impuestos</div>'
+    +'<div style="display:flex;gap:24px;flex-wrap:wrap">'
+    +'<div><div style="font-size:12px;font-weight:600;margin-bottom:6px">Tasa de ITBMS</div>'
+    +'<div style="font-size:11px;color:var(--mu);line-height:1.6">La tasa vigente en Panama es <strong>7%</strong>.<br>Se aplica automaticamente a los servicios no exentos.</div></div>'
+    +'<div style="flex:1"><div style="font-size:12px;font-weight:600;margin-bottom:6px">Servicios exentos de ITBMS</div>'
+    +'<div style="font-size:11px;color:var(--mu);line-height:1.8">'
+    +'<span class="tag tg" style="margin-right:5px">Exento</span> Consultas medicas y honorarios profesionales<br>'
+    +'<span class="tag tg" style="margin-right:5px">Exento</span> Servicios de salud en general<br>'
+    +'<span class="tag tgg" style="margin-right:5px">Gravado 7%</span> Examenes de laboratorio privados<br>'
+    +'<span class="tag tgg" style="margin-right:5px">Gravado 7%</span> Medicamentos (algunos exentos por ley)<br>'
+    +'<div style="margin-top:8px;font-size:10px;color:var(--li)">Base legal: Art. 1057-V del Codigo Fiscal de Panama y Ley 76 de 1976.</div>'
+    +'</div></div>'
+    +'</div>'
+    +'</div>'
+    +'<div class="alert ai">Los cambios se aplican a recetas y facturas nuevas. Al crear una factura, marque la casilla <strong>Ex.</strong> para cada servicio exento de ITBMS.</div>'
+    +'</div>');
+}
+function saveCfg(){var map={doc:'cfg-doc',esp:'cfg-esp',mp:'cfg-mp',ruc:'cfg-ruc',cli:'cfg-cli',dir:'cfg-dir',tel:'cfg-tel',email:'cfg-em'};Object.keys(map).forEach(function(k){var e=ge(map[k]);if(e)CFG[k]=e.value;});toast('Configuracion guardada');}
+
+/* SAVE ACTIONS */
+function savePac(){
+  var n=gv('np-n').trim(),a=gv('np-a').trim();
+  if(!n||!a){toast('Nombre y apellido requeridos','err');return;}
+  PACS.unshift({id:Date.now(),n:n,a:a,ced:gv('np-ced'),dob:gv('np-dob'),sex:gv('np-sex'),tel:gv('np-tel'),em:gv('np-em'),sg:gv('np-sg'),ec:gv('np-ec'),ocu:gv('np-ocu'),seg:gv('np-seg'),pol:gv('np-pol'),dir:gv('np-dir'),emg:gv('np-emg'),alg:gv('np-alg')||'Ninguna conocida',ant:gv('np-ant'),antf:gv('np-antf')});
+  fillSel();closeMo('moPac');renderSide();
+  if(curMod==='pacs')rPacs();
+  toast('Paciente registrado');
+}
+function saveCons(){
+  var pid=parseInt(gv('nc-p')),m=gv('nc-m').trim();
+  if(!m){toast('El motivo es requerido','err');return;}
+  CONS.push({id:Date.now(),pid:pid,f:gv('nc-f')||TODAY,t:gv('nc-t'),m:m,ta:gv('nc-ta'),fc:gv('nc-fc'),tp:gv('nc-tp'),o2:gv('nc-o2'),gl:gv('nc-gl'),pe:gv('nc-pe'),ta2:gv('nc-ta2'),fr:gv('nc-fr'),pa:gv('nc-pa'),an:gv('nc-an'),ex:gv('nc-ex'),dx:gv('nc-dx')||'Sin diagnostico',es:gv('nc-es'),pl:gv('nc-pl'),px:gv('nc-px'),ob:gv('nc-ob')});
+  closeMo('moCons');renderSide();badges();
+  if(selPac&&selPac.id===pid)showPac(pid);
+  else if(curMod==='cons')rCons();
+  else if(curMod==='dash')rDash();
+  toast('Consulta registrada');
+}
+function saveCita(){
+  var pid=parseInt(gv('ci-p')),f=gv('ci-f'),h=gv('ci-h');
+  if(!f||!h){toast('Fecha y hora requeridas','err');return;}
+  CITAS.push({id:Date.now(),pid:pid,f:f,h:h,t:gv('ci-t'),d:gv('ci-d'),n:gv('ci-n'),e:gv('ci-e')});
+  closeMo('moCita');badges();
+  if(curMod==='agenda')rAgenda();
+  else if(curMod==='dash')rDash();
+  toast('Cita agendada');
+}
+function saveRx(){
+  var pid=parseInt(gv('rx-p'));
+  var meds=[];
+  document.querySelectorAll('#rxmeds .mrw').forEach(function(row){var n=row.querySelector('.rn').value.trim();if(n)meds.push({n:n,d:row.querySelector('.rd').value,i:row.querySelector('.ri').value,di:row.querySelector('.rdi').value});});
+  if(!meds.length){toast('Agregue al menos un medicamento','err');return;}
+  var num='RX-2026-'+String(rxN++).padStart(3,'0');
+  RXS.push({id:Date.now(),pid:pid,f:gv('rx-f')||TODAY,num:num,dx:gv('rx-dx')||'--',meds:meds,ind:gv('rx-ind'),obs:gv('rx-obs'),vd:gv('rx-vd')});
+  var rn=ge('rx-num');if(rn)rn.value='RX-2026-'+String(rxN).padStart(3,'0');
+  closeMo('moRx');
+  if(selPac&&selPac.id===pid)showPac(pid);
+  else if(curMod==='rxs')rRxs();
+  toast('Receta emitida: '+num);
+}
+function saveLab(){
+  var pid=parseInt(gv('lb-p'));
+  LABS.push({id:Date.now(),pid:pid,f:gv('lb-f')||TODAY,t:gv('lb-t'),ind:gv('lb-ind'),est:gv('lb-est'),res:gv('lb-res'),int:gv('lb-int')});
+  closeMo('moLab');badges();
+  if(selPac&&selPac.id===pid)showPac(pid);
+  else if(curMod==='lab')rLab();
+  toast('Examen registrado');
+}
+function saveFac(){
+  var pid=parseInt(gv('fc-p'));
+  var items=[];
+  document.querySelectorAll('#facitems .mrw').forEach(function(row){
+    var d=row.querySelector('.fd').value.trim();
+    if(d){
+      var q=parseInt(row.querySelector('.fq').value)||1;
+      var p=parseFloat(row.querySelector('.fp').value)||0;
+      var ex=row.querySelector('.fex')&&row.querySelector('.fex').checked;
+      items.push({d:d,q:q,p:p,ex:ex});
+    }
+  });
+  if(!items.length){toast('Agregue al menos un servicio','err');return;}
+  var sub=items.reduce(function(s,i){return s+i.p*i.q;},0);
+  var examt=items.filter(function(i){return i.ex;}).reduce(function(s,i){return s+i.p*i.q;},0);
+  var base=sub-examt;
+  var tax=base*0.07,tot=sub+tax;
+  var num='FAC-2026-'+String(facN++).padStart(3,'0');
+  FACS.push({id:Date.now(),pid:pid,f:gv('fc-f')||TODAY,num:num,mp:gv('fc-mp'),items:items,sub:sub,examt:examt,base:base,tax:tax,tot:tot,n:gv('fc-n'),est:'Pendiente'});
+  closeMo('moFac');
+  if(curMod==='fac')rFac();
+  toast('Factura '+num+' - $'+tot.toFixed(2));
+}
+
+/* MED/FAC ROWS */
+function addMed(){var r=document.createElement('div');r.className='mrw';r.innerHTML='<input placeholder="Medicamento" class="rn" style="flex:1.2"><input placeholder="Concentracion" class="rd" style="flex:.9"><input placeholder="Instruccion" class="ri" style="flex:1.3"><input placeholder="Dias" class="rdi" style="flex:.3;min-width:44px"><button class="brm" onclick="rmMed(this)">&#10005;</button>';ge('rxmeds').appendChild(r);}
+function rmMed(btn){if(document.querySelectorAll('#rxmeds .mrw').length>1)btn.parentElement.remove();}
+function addFac(){var r=document.createElement('div');r.className='mrw';r.innerHTML='<input placeholder="Servicio" class="fd" style="flex:2"><input type="number" class="fq" value="1" style="flex:0;width:36px;min-width:36px;text-align:center" oninput="calcFac()"><input type="number" class="fp" placeholder="0.00" style="flex:0;width:68px;min-width:68px;text-align:right" oninput="calcFac()"><div style="display:flex;align-items:center;justify-content:center;min-width:36px"><input type="checkbox" class="fex" onchange="calcFac()" style="width:auto;background:none;border:none;padding:0" title="Exento de ITBMS"></div><button class="brm" onclick="rmFac(this)">&#10005;</button>';ge('facitems').appendChild(r);}
+function rmFac(btn){if(document.querySelectorAll('#facitems .mrw').length>1){btn.parentElement.remove();calcFac();}}
+function calcFac(){
+  var sub=0,examt=0,base=0;
+  document.querySelectorAll('#facitems .mrw').forEach(function(r){
+    var p=parseFloat(r.querySelector('.fp').value)||0;
+    var q=parseInt(r.querySelector('.fq').value)||1;
+    var ex=r.querySelector('.fex')&&r.querySelector('.fex').checked;
+    var line=p*q;
+    sub+=line;
+    if(ex)examt+=line;else base+=line;
+  });
+  var tax=base*0.07,tot=sub+tax;
+  var upd=function(id,v){var e=ge(id);if(e)e.textContent=v;};
+  upd('fc-sub','$'+sub.toFixed(2));
+  upd('fc-examt','$'+examt.toFixed(2));
+  upd('fc-base','$'+base.toFixed(2));
+  upd('fc-tax','$'+tax.toFixed(2));
+  upd('fc-tot','$'+tot.toFixed(2));
+}
+
+/* SHORTCUTS */
+function openConsFor(pid){var e=ge('nc-p');if(e)e.value=pid;openMo('moCons');}
+function openRxFor(pid){RXD.pid=pid;selPac=pat(pid);renderSide();go('rxdigital',document.querySelector('.ni[onclick*="rxdigital"]'));}
+function openLabFor(pid){var e=ge('lb-p');if(e)e.value=pid;openMo('moLab');}
+function openCitaFor(pid){var e=ge('ci-p');if(e)e.value=pid;openMo('moCita');}
+
+/* ═══════════════════════════════════════════════════════
+   RxDIGITAL MODULE — Generador de Recetas con PDF
+   ═══════════════════════════════════════════════════════ */
+var RXD = {meds:[], ctr:0, pid:null};
+
+var RXD_PRES = ['','Tabletas','Capsulas','Jarabe','Ampollas','Crema','Gotas','Parche','Supositorio','Polvo','Aerosol','Vaginal','Otro'];
+
+var RXD_FREQ = [
+  {v:'',l:'-- Frecuencia --'},
+  {v:'1',l:'1 vez al dia'},
+  {v:'2',l:'2 veces al dia (c/12h)'},
+  {v:'3',l:'3 veces al dia (c/8h)'},
+  {v:'4',l:'4 veces al dia (c/6h)'},
+  {v:'6',l:'6 veces al dia (c/4h)'},
+  {v:'0.5',l:'1 vez cada 2 dias'},
+  {v:'0.33',l:'1 vez cada 3 dias'},
+  {v:'0.14',l:'1 vez por semana'}
+];
+
+var RXD_FREQ_LABELS = {'1':'1 vez/dia','2':'c/12h','3':'c/8h','4':'c/6h','6':'c/4h','0.5':'c/2 dias','0.33':'c/3 dias','0.14':'semanal'};
+
+/* Route */
+function rRxDigital(){
+  curMod='rxdigital';
+  RXD.pid = selPac ? selPac.id : (PACS[0]?PACS[0].id:null);
+  rxdRender();
+}
+
+function rxdRender(){
+  var p = RXD.pid ? pat(RXD.pid) : null;
+  var algWarn = p && p.alg && p.alg !== 'Ninguna conocida'
+    ? '<div class="rxd-alg" id="rxd-alg-warn" style="display:block">&#9888; <strong>ALERGIAS:</strong> '+xe(p.alg)+'</div>' : '';
+
+  var pacOptions = PACS.map(function(px){
+    return '<option value="'+px.id+'"'+(px.id===RXD.pid?' selected':'')+'>'+xe(px.n)+' '+xe(px.a)+'</option>';
+  }).join('');
+
+  setMain(
+    '<div class="mhdr"><div><div class="mtitle">RxDigital — Generador de Recetas</div>'
+    +'<div class="msub">Recetas profesionales con PDF imprimible y base de medicamentos oficial</div></div>'
+    +'<div class="mact"><button class="btn bp" onclick="rxdGeneratePDF()">&#128462; Generar PDF</button>'
+    +'<button class="btn bs" onclick="rxdClear()">&#8635; Limpiar</button></div></div>'
+    +'<div class="mcont"><div class="rxd-wrap">'
+
+    /* LEFT COLUMN */
+    +'<div style="display:flex;flex-direction:column;gap:14px">'
+
+    /* Patient selector */
+    +'<div class="rxd-card"><div class="rxd-sh"><div class="rxd-si bl">&#128100;</div>'
+    +'<div><div class="rxd-st">Paciente</div><div class="rxd-ss">Seleccione el paciente para la receta</div></div></div>'
+    +'<div class="rxd-body">'+algWarn
+    +'<div style="display:grid;grid-template-columns:1fr auto;gap:9px;align-items:end">'
+    +'<div class="rxd-fg"><label class="rxd-label">Paciente</label>'
+    +'<select style="font-size:11px" onchange="rxdSetPac(parseInt(this.value))">'+pacOptions+'</select></div>'
+    +'<div class="rxd-fg"><label class="rxd-label">Fecha</label>'
+    +'<input type="date" id="rxd-date" style="font-size:11px;width:140px"></div>'
+    +'</div>'
+    +(p?'<div style="margin-top:9px;background:var(--sf2);border-radius:var(--r);padding:8px 10px;font-size:11px;color:var(--mu)">'
+      +'<strong style="color:var(--tx)">'+xe(p.n)+' '+xe(p.a)+'</strong>'
+      +' &bull; '+xe(p.ced)+' &bull; '+age(p.dob)+' anos &bull; '+xe(p.sex)
+      +(p.sg?' &bull; '+xe(p.sg):'')+'</div>':'')
+    +'</div></div>'
+
+    /* Diagnostico */
+    +'<div class="rxd-card"><div class="rxd-sh"><div class="rxd-si tl">&#128203;</div>'
+    +'<div><div class="rxd-st">Diagnostico</div><div class="rxd-ss">Indicacion clinica para la prescripcion</div></div></div>'
+    +'<div class="rxd-body">'
+    +'<div class="rxd-fg"><label class="rxd-label">Diagnostico / Indicacion</label>'
+    +'<input type="text" id="rxd-dx" placeholder="Ej: I10 - Hipertension esencial" style="font-size:11px" oninput="rxdUpdatePreview()"></div>'
+    +'</div></div>'
+
+    /* Medications */
+    +'<div class="rxd-card"><div class="rxd-sh"><div class="rxd-si tl">&#128138;</div>'
+    +'<div><div class="rxd-st">Medicamentos <span id="rxd-count" style="display:none;background:var(--bl2);color:#fff;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:6px">0</span></div>'
+    +'<div class="rxd-ss">Agregue los medicamentos prescritos</div></div></div>'
+    +'<div class="rxd-body">'
+    +'<div class="rxd-mc" id="rxdMedList"></div>'
+    +'<div id="rxd-nomeds" style="text-align:center;padding:18px 0;color:var(--li);font-size:12px"><div style="font-size:28px;margin-bottom:6px">&#128138;</div>Sin medicamentos agregados</div>'
+    +'<button class="rxd-ghost" style="margin-top:10px" onclick="rxdAddMed()">&#43; Agregar Medicamento</button>'
+    +'</div></div>'
+    +'</div>' /* end left col */
+
+    /* RIGHT SIDEBAR */
+    +'<div style="display:flex;flex-direction:column;gap:14px">'
+
+    /* Doctor info */
+    +'<div class="rxd-card"><div class="rxd-sh"><div class="rxd-si bl">&#129786;</div>'
+    +'<div><div class="rxd-st">Medico Prescriptor</div><div class="rxd-ss">Tomado de Configuracion</div></div></div>'
+    +'<div class="rxd-body" style="font-size:11px">'
+    +'<div style="font-weight:700;color:var(--bl2);font-size:12px;margin-bottom:3px">'+xe(CFG.doc)+'</div>'
+    +'<div style="color:var(--gr);font-size:10px;margin-bottom:4px">'+xe(CFG.esp)+'</div>'
+    +'<div style="color:var(--mu)">'+xe(CFG.mp)+' &bull; '+xe(CFG.cli)+'</div>'
+    +'<div style="color:var(--mu)">'+xe(CFG.dir)+'</div>'
+    +'<div style="color:var(--mu)">Tel: '+xe(CFG.tel)+'</div>'
+    +'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);font-size:10px;color:var(--li)">Para cambiar, vaya a Configuracion</div>'
+    +'</div></div>'
+
+    /* Preview */
+    +'<div class="rxd-card"><div class="rxd-sh"><div class="rxd-si tl">&#128203;</div>'
+    +'<div><div class="rxd-st">Vista Previa</div><div class="rxd-ss">Resumen de la receta</div></div></div>'
+    +'<div class="rxd-body"><div class="rxd-prev" id="rxd-prev"><div class="rxd-empty">Complete el formulario...</div></div></div></div>'
+
+    /* Actions */
+    +'<div class="rxd-card"><div class="rxd-body">'
+    +'<div style="display:flex;flex-direction:column;gap:7px">'
+    +'<button class="btn bp btn-sm" style="width:100%;padding:10px;font-size:12px" onclick="rxdGeneratePDF()">&#128462; Generar PDF</button>'
+    +'<button class="btn bs btn-sm" style="width:100%" onclick="rxdClear()">&#8635; Limpiar formulario</button>'
+    +'</div>'
+    +'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bd);font-size:10px;color:var(--li);text-align:center;line-height:1.5">'
+    +'El PDF incluye espacio para firma y sello del medico</div>'
+    +'</div></div>'
+
+    +'</div>' /* end sidebar */
+    +'</div></div>' /* end rxd-wrap, mcont */
+  );
+
+  /* Init date */
+  var dd=ge('rxd-date'); if(dd&&!dd.value) dd.value=TODAY;
+  rxdRenderMeds();
+  rxdUpdatePreview();
+}
+
+function rxdSetPac(id){
+  RXD.pid=id; selPac=pat(id); renderSide(); rxdRender();
+}
+
+/* ── Drug DB (subset, sorted) ── */
+var DRUG_DB = [
+  {n:'Aciclovir',p:'Capsulas',d:['400mg'],v:'V.O'},
+  {n:'Acido Acetilsalicilico',p:'Tabletas',d:['75-100 mg'],v:'V.O'},
+  {n:'Acido Folico',p:'Tabletas',d:['5 mg'],v:'V.O'},
+  {n:'Albendazol',p:'Tabletas',d:['400 mg'],v:'V.O'},
+  {n:'Albendazol',p:'Jarabe',d:['40mg/ml'],v:'V.O'},
+  {n:'Alopurinol',p:'Tabletas',d:['300mg'],v:'V.O'},
+  {n:'Alprazolam',p:'Tabletas',d:['0.25 mg','0.5 mg'],v:'V.O'},
+  {n:'Amitriptilina',p:'Capsulas',d:['10mg','25mg'],v:'V.O'},
+  {n:'Amlodipina',p:'Tabletas',d:['5mg'],v:'V.O'},
+  {n:'Amoxicilina',p:'Capsulas',d:['500mg'],v:'V.O'},
+  {n:'Amoxicilina',p:'Jarabe',d:['250mg/5ml'],v:'V.O'},
+  {n:'Amoxicilina + Ac. Clavulanico',p:'Tabletas',d:['500mg + 125mg'],v:'V.O'},
+  {n:'Amoxicilina + Ac. Clavulanico',p:'Jarabe',d:['400mg + 57mg/5ml'],v:'V.O'},
+  {n:'Atenolol',p:'Tabletas',d:['100mg'],v:'V.O'},
+  {n:'Atorvastatina',p:'Tabletas',d:['10mg','20mg','40mg','80mg'],v:'V.O'},
+  {n:'Azitromicina',p:'Capsulas',d:['500 mg'],v:'V.O'},
+  {n:'Azitromicina',p:'Jarabe',d:['200mg/5ml'],v:'V.O'},
+  {n:'Beclometasona',p:'Aerosol',d:['50mcg/inhalacion'],v:'Inhalado'},
+  {n:'Carbamazepina',p:'Tabletas',d:['200mg'],v:'V.O'},
+  {n:'Carbamazepina',p:'Jarabe',d:['100mg/5ml'],v:'V.O'},
+  {n:'Carvedilol',p:'Tabletas',d:['6.25mg','12.5mg','25mg'],v:'V.O'},
+  {n:'Cefalexina',p:'Capsulas',d:['500mg'],v:'V.O'},
+  {n:'Cefalexina',p:'Jarabe',d:['250mg/5ml'],v:'V.O'},
+  {n:'Ciprofloxacina',p:'Tabletas',d:['500mg'],v:'V.O'},
+  {n:'Claritromicina',p:'Tabletas',d:['500mg'],v:'V.O'},
+  {n:'Clindamicina',p:'Capsulas',d:['300mg'],v:'V.O'},
+  {n:'Clonazepam',p:'Tabletas',d:['2mg'],v:'V.O'},
+  {n:'Clopidogrel',p:'Tabletas',d:['75mg'],v:'V.O'},
+  {n:'Clorfeniramina',p:'Tabletas',d:['4mg'],v:'V.O'},
+  {n:'Dexametasona',p:'Tabletas',d:['4mg'],v:'V.O'},
+  {n:'Dexametasona',p:'Ampollas',d:['4mg/ml'],v:'I.M./I.V'},
+  {n:'Dextrometorfano',p:'Jarabe',d:['10mg/5ml'],v:'V.O'},
+  {n:'Diazepam',p:'Tabletas',d:['5mg'],v:'V.O'},
+  {n:'Diclofenaco',p:'Tabletas',d:['50mg'],v:'V.O'},
+  {n:'Diclofenaco',p:'Ampollas',d:['75mg/3ml'],v:'I.M'},
+  {n:'Digoxina',p:'Tabletas',d:['0.25mg'],v:'V.O'},
+  {n:'Diltiazem',p:'Tabletas',d:['60mg'],v:'V.O'},
+  {n:'Doxiciclina',p:'Capsulas',d:['100mg'],v:'V.O'},
+  {n:'Enalapril',p:'Tabletas',d:['10mg','20mg'],v:'V.O'},
+  {n:'Eritromicina',p:'Tabletas',d:['500mg'],v:'V.O'},
+  {n:'Espironolactona',p:'Tabletas',d:['25mg'],v:'V.O'},
+  {n:'Fenobarbital',p:'Tabletas',d:['32mg','64mg'],v:'V.O'},
+  {n:'Fluconazol',p:'Capsulas',d:['150mg','200mg'],v:'V.O'},
+  {n:'Fluoxetina',p:'Capsulas',d:['20mg'],v:'V.O'},
+  {n:'Furosemida',p:'Tabletas',d:['40mg'],v:'V.O'},
+  {n:'Gabapentina',p:'Capsulas',d:['300mg'],v:'V.O'},
+  {n:'Gentamicina',p:'Ampollas',d:['40mg/ml'],v:'I.M./I.V'},
+  {n:'Glibenclamida',p:'Tabletas',d:['5mg'],v:'V.O'},
+  {n:'Gliclazida',p:'Tabletas',d:['80mg'],v:'V.O'},
+  {n:'Haloperidol',p:'Tabletas',d:['5mg'],v:'V.O'},
+  {n:'Hidroclorotiazida',p:'Tabletas',d:['25mg'],v:'V.O'},
+  {n:'Hidrocortisona',p:'Crema',d:['1%','2.5%'],v:'Topica'},
+  {n:'Hidroxicina',p:'Capsulas',d:['25mg'],v:'V.O'},
+  {n:'Ibuprofeno',p:'Tabletas',d:['400mg','600mg'],v:'V.O'},
+  {n:'Ibuprofeno',p:'Jarabe',d:['100mg/5ml','200mg/5ml'],v:'V.O'},
+  {n:'Indapamida',p:'Tabletas',d:['1.5mg'],v:'V.O'},
+  {n:'Insulina Glargina',p:'Ampollas',d:['100UI/ml'],v:'S.C'},
+  {n:'Insulina NPH',p:'Ampollas',d:['100UI/ml'],v:'S.C'},
+  {n:'Insulina Regular',p:'Ampollas',d:['100UI/ml'],v:'S.C./I.V'},
+  {n:'Ipratropio',p:'Aerosol',d:['20mcg/inhalacion'],v:'Inhalado'},
+  {n:'Isoniazida',p:'Tabletas',d:['100mg'],v:'V.O'},
+  {n:'Ivermectina',p:'Tabletas',d:['6mg'],v:'V.O'},
+  {n:'Ketoconazol',p:'Crema',d:['2%'],v:'Topica'},
+  {n:'Lactulosa',p:'Jarabe',d:['667mg/ml'],v:'V.O'},
+  {n:'Lamotrigina',p:'Tabletas',d:['100mg'],v:'V.O'},
+  {n:'Levofloxacina',p:'Tabletas',d:['500mg'],v:'V.O'},
+  {n:'Levotiroxina',p:'Tabletas',d:['0.05mg','0.1mg','0.15mg'],v:'V.O'},
+  {n:'Lisinopril',p:'Tabletas',d:['10mg','20mg'],v:'V.O'},
+  {n:'Litio carbonato',p:'Capsulas',d:['300mg'],v:'V.O'},
+  {n:'Loperamida',p:'Capsulas',d:['2mg'],v:'V.O'},
+  {n:'Loratadina',p:'Tabletas',d:['10mg'],v:'V.O'},
+  {n:'Losartan',p:'Tabletas',d:['50mg','100mg'],v:'V.O'},
+  {n:'Mebendazol',p:'Tabletas',d:['100mg'],v:'V.O'},
+  {n:'Metformina',p:'Tabletas',d:['500mg','850mg','1000mg'],v:'V.O'},
+  {n:'Metoclopramida',p:'Ampollas',d:['10mg/2ml'],v:'I.M./I.V'},
+  {n:'Metronidazol',p:'Tabletas',d:['500mg'],v:'V.O'},
+  {n:'Metronidazol',p:'Jarabe',d:['125mg/5ml'],v:'V.O'},
+  {n:'Montelukast',p:'Tabletas',d:['4mg','5mg','10mg'],v:'V.O'},
+  {n:'Naproxeno',p:'Tabletas',d:['500mg'],v:'V.O'},
+  {n:'Nitrofurantoina',p:'Capsulas',d:['100mg'],v:'V.O'},
+  {n:'Olanzapina',p:'Tabletas',d:['5mg','10mg'],v:'V.O'},
+  {n:'Omeprazol',p:'Capsulas',d:['20mg'],v:'V.O'},
+  {n:'Paracetamol',p:'Tabletas',d:['500mg'],v:'V.O'},
+  {n:'Paracetamol',p:'Jarabe',d:['120mg/5ml','160mg/5ml'],v:'V.O'},
+  {n:'Paracetamol',p:'Gotas',d:['100mg/ml'],v:'V.O'},
+  {n:'Prednisona',p:'Tabletas',d:['5mg','20mg','50mg'],v:'V.O'},
+  {n:'Propranolol',p:'Tabletas',d:['10mg','40mg'],v:'V.O'},
+  {n:'Quetiapina',p:'Tabletas',d:['100mg','200mg'],v:'V.O'},
+  {n:'Ranitidina',p:'Tabletas',d:['150mg'],v:'V.O'},
+  {n:'Rifampicina',p:'Capsulas',d:['300mg'],v:'V.O'},
+  {n:'Rosuvastatina',p:'Tabletas',d:['10mg','20mg'],v:'V.O'},
+  {n:'Salbutamol',p:'Aerosol',d:['100mcg/inhalacion'],v:'Inhalado'},
+  {n:'Salbutamol',p:'Jarabe',d:['2mg/5ml'],v:'V.O'},
+  {n:'Simvastatina',p:'Tabletas',d:['10mg','20mg'],v:'V.O'},
+  {n:'Sitagliptina',p:'Tabletas',d:['100mg'],v:'V.O'},
+  {n:'Sucralfato',p:'Tabletas',d:['1g'],v:'V.O'},
+  {n:'Tramadol',p:'Capsulas',d:['50mg'],v:'V.O'},
+  {n:'Trimetoprim + Sulfametoxazol',p:'Tabletas',d:['160mg + 800mg'],v:'V.O'},
+  {n:'Trimetoprim + Sulfametoxazol',p:'Jarabe',d:['40mg + 200mg/5ml'],v:'V.O'},
+  {n:'Valproico acido',p:'Tabletas',d:['500mg'],v:'V.O'},
+  {n:'Valproico acido',p:'Jarabe',d:['250mg/5ml'],v:'V.O'},
+  {n:'Verapamilo',p:'Tabletas',d:['80mg','120mg'],v:'V.O'},
+  {n:'Warfarina',p:'Tabletas',d:['5mg'],v:'V.O'},
+  {n:'Zolpidem',p:'Tabletas',d:['10mg'],v:'V.O'}
+];
+DRUG_DB.sort(function(a,b){return a.n.localeCompare(b.n,'es');});
+
+function rxdNorm(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+
+function rxdAddMed(){
+  var id=++RXD.ctr;
+  RXD.meds.push({id:id,n:'',p:'',d:'',freq:'',days:'',posology:'',calcQty:'',calcUnit:'',otherQty:'',ml:''});
+  rxdRenderMeds();
+  rxdUpdatePreview();
+}
+
+function rxdRmMed(id){
+  RXD.meds=RXD.meds.filter(function(m){return m.id!==id;});
+  rxdRenderMeds();
+  rxdUpdatePreview();
+}
+
+function rxdUpdMed(id,field,val){
+  var m=RXD.meds.find(function(x){return x.id===id;});
+  if(m){m[field]=val;rxdUpdatePreview();}
+}
+
+function rxdRenderMeds(){
+  var list=ge('rxdMedList');
+  var nomeds=ge('rxd-nomeds');
+  var cnt=ge('rxd-count');
+  if(!list)return;
+  if(RXD.meds.length===0){list.innerHTML='';if(nomeds)nomeds.style.display='block';if(cnt)cnt.style.display='none';return;}
+  if(nomeds)nomeds.style.display='none';
+  if(cnt){cnt.style.display='inline-flex';cnt.textContent=RXD.meds.length;}
+
+  list.innerHTML=RXD.meds.map(function(m,idx){
+    /* Dose options from DRUG_DB */
+    var db=DRUG_DB.find(function(x){return rxdNorm(x.n)===rxdNorm(m.n)&&x.p===m.p;})
+      ||DRUG_DB.find(function(x){return rxdNorm(x.n)===rxdNorm(m.n);});
+    var doses=db?db.d:[];
+
+    var doseField=doses.length
+      ? '<div class="rxd-fg rxd-dsel"><label class="rxd-label">Concentracion</label>'
+        +'<select onchange="rxdUpdMed('+m.id+',\'d\',this.value);rxdCalc('+m.id+')">'
+        +'<option value="">-- Seleccionar --</option>'
+        +doses.map(function(d){return '<option value="'+d+'"'+(m.d===d?' selected':'')+'>'+d+'</option>';}).join('')
+        +'</select></div>'
+      : '<div class="rxd-fg"><label class="rxd-label">Concentracion</label>'
+        +'<input type="text" placeholder="Ej: 500mg" value="'+xe(m.d||'')+'" style="font-size:11px" oninput="rxdUpdMed('+m.id+',\'d\',this.value)"></div>';
+
+    var presOptions=RXD_PRES.map(function(pr){
+      return '<option value="'+pr+'"'+(m.p===pr?' selected':'')+'>'+pr+'</option>';
+    }).join('');
+
+    var freqOptions=RXD_FREQ.map(function(f){
+      return '<option value="'+f.v+'"'+(m.freq===f.v?' selected':'')+'>'+f.l+'</option>';
+    }).join('');
+
+    /* Calculator panel */
+    var calcPanel='';
+    if(m.p==='Tabletas'||m.p==='Capsulas'||m.p==='Jarabe'||m.p==='Ampollas'){
+      var mlField=m.p==='Jarabe'
+        ? '<div class="rxd-fg"><label class="rxd-label">ml/frasco</label>'
+          +'<input type="number" placeholder="120" value="'+xe(m.ml||'')+'" style="font-size:11px;width:80px" oninput="rxdUpdMed('+m.id+',\'ml\',this.value);rxdCalc('+m.id+')"></div>'
+        : '';
+      var resBox=m.calcQty
+        ? '<div class="rxd-res"><div class="rxd-rl">Cantidad</div><div class="rxd-rv">'+m.calcQty+'</div><div class="rxd-ru">'+xe(m.calcUnit||'')+'</div></div>'
+        : '<div class="rxd-res" style="background:rgba(15,76,117,.15)"><div class="rxd-rl" style="color:var(--li)">Complete campos</div></div>';
+      calcPanel='<div class="rxd-tp rxd-full"><div class="rxd-tp-title">&#128197; Calculadora de Tratamiento</div>'
+        +'<div class="rxd-tgrid">'
+        +'<div class="rxd-fg"><label class="rxd-label">Frecuencia</label>'
+        +'<select style="font-size:11px" onchange="rxdUpdMed('+m.id+',\'freq\',this.value);rxdCalc('+m.id+')">'+freqOptions+'</select></div>'
+        +'<div class="rxd-fg"><label class="rxd-label">Dias</label>'
+        +'<input type="number" min="1" max="365" placeholder="7" value="'+xe(m.days||'')+'" style="font-size:11px" oninput="rxdUpdMed('+m.id+',\'days\',this.value);rxdCalc('+m.id+')"></div>'
+        +resBox+mlField
+        +'</div></div>';
+    }
+
+    return '<div class="rxd-med" id="rxdMed_'+m.id+'">'
+      +'<div class="rxd-mh"><div class="rxd-mnum"><div class="rxd-mbadge">'+(idx+1)+'</div>'
+      +'<div class="rxd-mname">'+xe(m.n||'Nuevo medicamento')+'</div></div>'
+      +'<button class="brm" onclick="rxdRmMed('+m.id+')" style="font-size:14px;width:26px;height:26px;display:flex;align-items:center;justify-content:center">&#10005;</button></div>'
+      +'<div class="rxd-mb"><div class="rxd-mgrid">'
+      +'<div class="rxd-fg rxd-full rxd-ac">'
+      +'<label class="rxd-label">Medicamento *</label>'
+      +'<input type="text" id="rxdAcIn_'+m.id+'" class="rxd-acinput" placeholder="Buscar medicamento..." value="'+xe(m.n||'')+'" autocomplete="off" style="font-size:11px"'
+      +' oninput="rxdAcSearch('+m.id+',this.value)"'
+      +' onkeydown="rxdAcKey(event,'+m.id+')"'
+      +' onblur="rxdAcBlur('+m.id+')">'
+      +'<button class="rxd-acclear'+(m.n?' vis':'')+'" id="rxdAcClr_'+m.id+'" onclick="rxdAcClear('+m.id+')" type="button" tabindex="-1">&#10005;</button>'
+      +'<div class="rxd-drop" id="rxdDrop_'+m.id+'"></div>'
+      +'</div>'
+      +'<div class="rxd-fg rxd-full"><label class="rxd-label">Presentacion *</label>'
+      +'<select style="font-size:11px" onchange="rxdUpdMed('+m.id+',\'p\',this.value);rxdRenderMeds()">'+presOptions+'</select></div>'
+      +doseField
+      +calcPanel
+      +'<div class="rxd-fg rxd-full"><label class="rxd-label">Posologia / Instrucciones *'
+      +(m.calcQty?' <span style="font-size:9px;color:var(--gr);font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">autogenerada (editable)</span>':'')
+      +'</label>'
+      +'<textarea placeholder="Ej: Tomar 1 tableta cada 12 horas por 7 dias" style="font-size:11px;min-height:55px'+(m.calcQty?';border-color:rgba(13,115,119,.5);background:rgba(13,115,119,.03)':'')+'"'
+      +' oninput="rxdUpdMed('+m.id+',\'posology\',this.value)">'+xe(m.posology||'')+'</textarea></div>'
+      +'</div></div></div>';
+  }).join('');
+}
+
+function rxdCalc(id){
+  var m=RXD.meds.find(function(x){return x.id===id;});
+  if(!m)return;
+  var freq=parseFloat(m.freq),days=parseInt(m.days);
+  if(!freq||!days||!m.p){m.calcQty='';m.calcUnit='';rxdRenderMeds();return;}
+  var total=freq*days;
+  var fl=RXD_FREQ_LABELS[String(m.freq)]||m.freq+' veces/dia';
+  if(m.p==='Tabletas'||m.p==='Capsulas'){
+    var u=m.p==='Tabletas'?'tableta':'capsula';
+    var up=m.p==='Tabletas'?'tabletas':'capsulas';
+    m.calcQty=Math.ceil(total);m.calcUnit=up;
+    m.posology='Tomar 1 '+u+' '+fl+' por '+days+' dia'+(days>1?'s':'')+'. Total: '+m.calcQty+' '+up;
+  } else if(m.p==='Jarabe'){
+    var ml=parseInt(m.ml)||120;
+    var totalMl=Math.ceil(freq*days*5);
+    var frascos=Math.ceil(totalMl/ml);
+    m.calcQty=frascos;m.calcUnit='frasco(s) de '+ml+'ml';
+    m.posology='Tomar 5ml '+fl+' por '+days+' dia'+(days>1?'s':'')+'. Total: '+frascos+' frasco(s)';
+  } else if(m.p==='Ampollas'){
+    m.calcQty=Math.ceil(total);m.calcUnit='ampolla(s)';
+    m.posology='Aplicar 1 ampolla '+fl+' por '+days+' dia'+(days>1?'s':'')+'. Total: '+m.calcQty+' ampolla(s)';
+  }
+  rxdRenderMeds();rxdUpdatePreview();
+}
+
+/* Autocomplete */
+function rxdAcSearch(id,q){
+  var drop=ge('rxdDrop_'+id);
+  var clr=ge('rxdAcClr_'+id);
+  var m=RXD.meds.find(function(x){return x.id===id;});
+  if(!m)return;
+  m.n=q;
+  var card=ge('rxdMed_'+id);
+  if(card){var nd=card.querySelector('.rxd-mname');if(nd)nd.textContent=q||'Nuevo medicamento';}
+  if(clr)clr.classList.toggle('vis',q.length>0);
+  rxdUpdatePreview();
+  if(!q.trim()){if(drop)drop.classList.remove('open');return;}
+  var qn=rxdNorm(q);
+  var res=DRUG_DB.filter(function(d){return rxdNorm(d.n).indexOf(qn)>=0;}).slice(0,12);
+  if(!drop)return;
+  if(res.length===0){
+    drop.innerHTML='<div class="rxd-nores">No en listado oficial<span>Se usara "'+xe(q)+'" como nombre personalizado</span></div>';
+  } else {
+    drop.innerHTML=res.map(function(d){
+      var hl=rxdHl(d.n,qn);
+      var ds=d.d&&d.d.length?d.d[0]:'';
+      return '<div class="rxd-di" onmousedown="rxdAcSel('+id+',\''+d.n.replace(/'/g,"\\'")+'\',\''+d.p+'\')" onmouseover="rxdAcHov(this)">'
+        +'<div class="rxd-dn">'+hl+'</div>'
+        +'<div class="rxd-dpill">'+xe(d.p)+(ds?' | '+xe(ds):'')+'</div>'
+        +'</div>';
+    }).join('');
+  }
+  drop.classList.add('open');
+}
+
+function rxdHl(name,q){
+  var n=rxdNorm(name);var idx=n.indexOf(q);
+  if(idx===-1)return xe(name);
+  return xe(name.slice(0,idx))+'<mark>'+xe(name.slice(idx,idx+q.length))+'</mark>'+xe(name.slice(idx+q.length));
+}
+
+function rxdAcSel(id,name,pres){
+  var m=RXD.meds.find(function(x){return x.id===id;});
+  if(!m)return;
+  m.n=name;m.p=pres;m.d='';m.calcQty='';m.calcUnit='';m.posology='';m.freq='';m.days='';
+  var drop=ge('rxdDrop_'+id);if(drop)drop.classList.remove('open');
+  rxdRenderMeds();rxdUpdatePreview();
+  setTimeout(function(){var e=ge('rxdMed_'+id);if(e){var ta=e.querySelector('textarea');if(ta)ta.focus();}},60);
+}
+
+function rxdAcClear(id){
+  var m=RXD.meds.find(function(x){return x.id===id;});
+  if(!m)return;
+  m.n='';rxdRenderMeds();rxdUpdatePreview();
+  setTimeout(function(){var e=ge('rxdAcIn_'+id);if(e)e.focus();},40);
+}
+
+function rxdAcBlur(id){setTimeout(function(){var d=ge('rxdDrop_'+id);if(d)d.classList.remove('open');},160);}
+
+function rxdAcHov(el){
+  el.closest('.rxd-drop').querySelectorAll('.rxd-di').forEach(function(x){x.classList.remove('act');});
+  el.classList.add('act');
+}
+
+function rxdAcKey(e,id){
+  var drop=ge('rxdDrop_'+id);if(!drop||!drop.classList.contains('open'))return;
+  var items=drop.querySelectorAll('.rxd-di');
+  var act=drop.querySelector('.rxd-di.act');
+  var idx=act?Array.from(items).indexOf(act):-1;
+  if(e.key==='ArrowDown'){e.preventDefault();idx=Math.min(idx+1,items.length-1);items.forEach(function(x){x.classList.remove('act');});if(items[idx])items[idx].classList.add('act');}
+  else if(e.key==='ArrowUp'){e.preventDefault();idx=Math.max(idx-1,0);items.forEach(function(x){x.classList.remove('act');});if(items[idx])items[idx].classList.add('act');}
+  else if(e.key==='Enter'){e.preventDefault();if(act)act.dispatchEvent(new MouseEvent('mousedown'));}
+  else if(e.key==='Escape'){drop.classList.remove('open');}
+}
+
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.rxd-ac'))document.querySelectorAll('.rxd-drop.open').forEach(function(d){d.classList.remove('open');});
+});
+
+/* Preview */
+function rxdUpdatePreview(){
+  var prev=ge('rxd-prev');if(!prev)return;
+  var p=RXD.pid?pat(RXD.pid):null;
+  var dx=ge('rxd-dx')?ge('rxd-dx').value:'';
+  var dt=ge('rxd-date')?ge('rxd-date').value:'';
+  var html='<div class="rxd-phl">'
+    +'<div class="rxd-pdr">'+xe(CFG.doc)+'</div>'
+    +'<div class="rxd-psp">'+xe(CFG.esp)+' &bull; '+xe(CFG.mp)+'</div>'
+    +'</div>';
+  if(p){
+    html+='<div style="margin-bottom:5px;font-size:10px;color:var(--tx)">'
+      +'<strong>'+xe(p.n)+' '+xe(p.a)+'</strong> &bull; '+xe(p.ced)+(dt?' &bull; '+fmtD(dt):'')+'</div>';
+  }
+  if(dx)html+='<div style="font-size:9px;color:var(--gr);margin-bottom:5px">Dx: '+xe(dx)+'</div>';
+  var filled=RXD.meds.filter(function(m){return m.n;});
+  if(filled.length){
+    html+='<div style="border-top:1px dashed var(--bd);padding-top:5px;margin-top:3px">';
+    filled.forEach(function(m,i){
+      html+='<div style="margin-bottom:5px"><strong style="color:var(--bl2)">'+(i+1)+'. '+xe(m.n)+'</strong>'
+        +(m.p?' <span style="color:#0d7377;font-size:9px">('+xe(m.p)+')</span>':'')
+        +(m.d?' <span style="font-size:9px">'+xe(m.d)+'</span>':'')
+        +(m.posology?'<br><span style="color:var(--mu);font-size:9px">'+xe(m.posology)+'</span>':'')
+        +'</div>';
+    });
+    html+='</div>';
+  }
+  if(!p&&!filled.length)html='<div class="rxd-empty">Complete el formulario...</div>';
+  prev.innerHTML=html;
+}
+
+/* Clear */
+function rxdClear(){
+  if(!confirm('Limpiar el formulario de receta?'))return;
+  RXD.meds=[];RXD.ctr=0;
+  var dx=ge('rxd-dx');if(dx)dx.value='';
+  var dt=ge('rxd-date');if(dt)dt.value=TODAY;
+  rxdRenderMeds();rxdUpdatePreview();
+  toast('Formulario limpiado');
+}
+
+/* PDF Generation */
+function rxdGeneratePDF(){
+  var p=RXD.pid?pat(RXD.pid):null;
+  if(!p){toast('Seleccione un paciente','err');return;}
+  var filled=RXD.meds.filter(function(m){return m.n;});
+  if(!filled.length){toast('Agregue al menos un medicamento','err');return;}
+  for(var i=0;i<filled.length;i++){
+    if(!filled[i].p){toast('El medicamento "'+filled[i].n+'" no tiene presentacion','err');return;}
+    if(!filled[i].posology){toast('El medicamento "'+filled[i].n+'" no tiene posologia','err');return;}
+  }
+  if(!window.jspdf){toast('Libreria PDF no disponible','err');return;}
+  var jsPDF=window.jspdf.jsPDF;
+  var doc=new jsPDF({format:'a4',unit:'mm'});
+  var W=210,H=297,ml=18,mr=18,mt=15;
+  var y=mt;
+  var dx=ge('rxd-dx')?ge('rxd-dx').value:'';
+  var dt=ge('rxd-date')?ge('rxd-date').value:'';
+
+  /* Header */
+  doc.setFillColor('#0f4c75');doc.rect(0,0,W,40,'F');
+  doc.setFillColor('#1b6ca8');doc.roundedRect(ml,7,18,18,2,2,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor('#ffffff');
+  doc.text('Rx',ml+9,19,{align:'center'});
+  doc.setFont('helvetica','bold');doc.setFontSize(13);
+  doc.text('Dr(a). '+CFG.doc,ml+22,15);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor('#a8d4f5');
+  doc.text(CFG.esp,ml+22,21);
+  doc.text(CFG.mp,ml+22,26);
+  doc.setFontSize(8.5);doc.setTextColor('#cce4f7');
+  doc.text(CFG.cli,W-mr,15,{align:'right'});
+  doc.text(CFG.tel,W-mr,21,{align:'right'});
+  doc.text(CFG.dir,W-mr,27,{align:'right'});
+  y=48;
+
+  /* Title */
+  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor('#0f4c75');
+  doc.text('RECETA MEDICA',W/2,y,{align:'center'});
+  doc.setDrawColor('#0d7377');doc.setLineWidth(0.5);doc.line(W/2-30,y+2,W/2+30,y+2);
+  y+=10;
+
+  /* Date */
+  doc.setFillColor('#f0f7ff');doc.roundedRect(W-mr-60,y-6,60,10,2,2,'F');
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor('#1b6ca8');
+  doc.text('Fecha: '+(dt?fmtD(dt):'____/____/________'),W-mr-55,y);
+  y+=6;
+
+  /* Patient box */
+  doc.setFillColor('#f8fafb');doc.roundedRect(ml,y,W-ml-mr,28,2,2,'F');
+  doc.setDrawColor('#e2e8f0');doc.setLineWidth(0.4);doc.roundedRect(ml,y,W-ml-mr,28,2,2,'D');
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor('#4a5568');
+  doc.text('DATOS DEL PACIENTE',ml+4,y+5);
+  doc.setDrawColor('#e2e8f0');doc.line(ml,y+8,W-mr,y+8);
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor('#1a1a2e');
+  doc.text(p.n+' '+p.a,ml+4,y+15);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor('#4a5568');
+  var pline='Cedula: '+p.ced+'   Edad: '+age(p.dob)+' anos   Sexo: '+p.sex;
+  if(p.sg)pline+='   Sangre: '+p.sg;
+  doc.text(pline,ml+4,y+22);
+  y+=36;
+
+  /* Diagnostico */
+  if(dx){
+    doc.setFillColor('#e8f0eb');doc.roundedRect(ml,y,W-ml-mr,10,2,2,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor('#2d5a3d');
+    doc.text('Dx: '+dx,ml+4,y+6.5);
+    y+=16;
+  }
+
+  /* Meds header */
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor('#0f4c75');
+  doc.text('MEDICAMENTOS PRESCRITOS',ml,y);
+  doc.setDrawColor('#0d7377');doc.setLineWidth(0.6);doc.line(ml,y+2,W-mr,y+2);
+  y+=8;
+
+  filled.forEach(function(m,i){
+    var cardH=m.posology.length>80?38:32;
+    if(y+cardH>H-50){doc.addPage();y=20;}
+    var bg=i%2===0?'#f8fafb':'#ffffff';
+    doc.setFillColor(bg);doc.roundedRect(ml,y,W-ml-mr,cardH,2,2,'F');
+    doc.setDrawColor('#e2e8f0');doc.setLineWidth(0.3);doc.roundedRect(ml,y,W-ml-mr,cardH,2,2,'D');
+    /* Number */
+    doc.setFillColor('#0f4c75');doc.circle(ml+6,y+8,5,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor('#ffffff');
+    doc.text(String(i+1),ml+6,y+10,{align:'center'});
+    /* Name */
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor('#1a1a2e');
+    doc.text(m.n,ml+14,y+10);
+    /* Presentation */
+    if(m.p){
+      doc.setFont('helvetica','normal');doc.setFontSize(8);
+      var pw=doc.getTextWidth(m.p)+6;
+      doc.setFillColor('#e6f4f1');doc.roundedRect(W-mr-pw-2,y+4,pw+4,7,1,1,'F');
+      doc.setTextColor('#0d7377');doc.text(m.p,W-mr-pw/2-2,y+8.8,{align:'center'});
+    }
+    /* Qty */
+    var qty='';
+    if(m.calcQty)qty=m.calcQty+' '+( m.calcUnit||'')+(m.freq&&m.days?' - '+( RXD_FREQ_LABELS[String(m.freq)]||'')+' x '+m.days+' dias':'');
+    else if(m.d)qty=m.d;
+    if(qty){doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor('#1b6ca8');doc.text('Cantidad: '+qty,ml+14,y+18);}
+    /* Posology */
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor('#4a5568');
+    var posLines=doc.splitTextToSize(m.posology,W-ml-mr-18);
+    doc.text(posLines.slice(0,3),ml+14,qty?y+25:y+18);
+    y+=cardH+4;
+  });
+
+  /* Alergias warning if any */
+  if(p.alg&&p.alg!=='Ninguna conocida'){
+    if(y+10>H-50){doc.addPage();y=20;}
+    doc.setFillColor('#fdf0f0');doc.roundedRect(ml,y,W-ml-mr,10,2,2,'F');
+    doc.setDrawColor('#c0392b');doc.setLineWidth(0.5);doc.roundedRect(ml,y,W-ml-mr,10,2,2,'D');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor('#8b2020');
+    doc.text('ALERGIAS CONOCIDAS: '+p.alg,ml+4,y+6.5);
+    y+=16;
+  }
+
+  /* Signature */
+  if(y+50>H-15){doc.addPage();y=20;}
+  y+=5;
+  doc.setDrawColor('#e2e8f0');doc.setLineWidth(0.4);doc.line(ml,y,W-mr,y);y+=12;
+  var bw=(W-ml-mr-14)/2;
+  /* Firma */
+  doc.setFillColor('#fafaf7');doc.rect(ml,y,bw,32,'F');
+  doc.setDrawColor('#0f4c75');doc.setLineWidth(0.4);doc.rect(ml,y,bw,32,'D');
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor('#9aa5b4');
+  doc.text('Firma del Medico',ml+bw/2,y+4,{align:'center'});
+  doc.setDrawColor('#0f4c75');doc.setLineWidth(0.6);doc.line(ml+8,y+26,ml+bw-8,y+26);
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor('#0f4c75');
+  doc.text('Dr(a). '+CFG.doc+' - '+CFG.mp,ml+bw/2,y+31,{align:'center'});
+  /* Sello */
+  var sx=ml+bw+14;
+  doc.setFillColor('#fafaf7');doc.rect(sx,y,bw,32,'F');
+  doc.setDrawColor('#0d7377');doc.setLineWidth(0.4);
+  doc.setLineDashPattern([2,1],0);doc.rect(sx,y,bw,32,'D');doc.setLineDashPattern([],0);
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor('#9aa5b4');
+  doc.text('Sello del Medico',sx+bw/2,y+4,{align:'center'});
+  var cx=sx+bw/2,cy=y+18;
+  doc.setDrawColor('#d0e8e8');doc.setLineWidth(0.3);doc.circle(cx,cy,8,'D');doc.circle(cx,cy,6,'D');
+  doc.setFont('helvetica','normal');doc.setFontSize(5);doc.setTextColor('#c0d8d8');doc.text('SELLO',cx,cy+1,{align:'center'});
+
+  /* Footer */
+  doc.setFillColor('#0f4c75');doc.rect(0,H-12,W,12,'F');
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor('#a8d4f5');
+  doc.text('MediCare Pro / RxDigital - Sistema de Recetas Medicas',W/2,H-5.5,{align:'center'});
+  doc.setTextColor('#6b9ec4');
+  doc.text('Generado: '+new Date().toLocaleString('es-PA'),W-mr,H-5.5,{align:'right'});
+
+  var fname='Receta_'+p.n+'_'+p.a+'.pdf';
+  doc.save(fname.replace(/\s+/g,'_'));
+  toast('PDF generado: '+fname);
+}
+/* ═══════════════════════════════════════════════════════ */
+
+/* INIT */
+(function(){
+  var vd=new Date();vd.setDate(vd.getDate()+30);var vds=vd.toISOString().split('T')[0];
+  ['nc-f','ci-f','rx-f','lb-f','fc-f'].forEach(function(id){var e=ge(id);if(e)e.value=TODAY;});
+  var rn=ge('rx-num');if(rn)rn.value='RX-2026-00'+rxN;
+  var rv=ge('rx-vd');if(rv)rv.value=vds;
+  fillSel();renderSide();badges();rDash();
+})();
+</script>
+</body>
+</html>
