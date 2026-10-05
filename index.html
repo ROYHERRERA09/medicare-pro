@@ -710,6 +710,28 @@ function buildCal(){
 }
 function markCita(id){var c=CITAS.find(function(x){return x.id===id;});if(c){c.e='Completada';rAgenda();toast('Cita completada');}}
 function delCita(id){if(confirm('Cancelar esta cita?')){CITAS=CITAS.filter(function(c){return c.id!==id;});rAgenda();badges();toast('Cita cancelada');}}
+function delCons(id){
+  var c=CONS.find(function(x){return x.id===id;});
+  if(!c)return;
+  var cu=window._currentUser;
+  if(cu&&c.createdBy&&c.createdBy!==cu.uid){toast('Solo puede eliminar sus propias consultas','err');return;}
+  if(!confirm('Eliminar esta consulta?'))return;
+  var pid=c.pid;
+  if(c._fid&&window._db){var fs=window._fs;fs.deleteDoc(fs.doc(window._db,'consultas',c._fid));}
+  CONS=CONS.filter(function(x){return x.id!==id;});
+  showPac(pid);toast('Consulta eliminada');
+}
+function delLab(id){
+  var l=LABS.find(function(x){return x.id===id;});
+  if(!l)return;
+  var cu=window._currentUser;
+  if(cu&&l.createdBy&&l.createdBy!==cu.uid){toast('Solo puede eliminar sus propios examenes','err');return;}
+  if(!confirm('Eliminar este examen?'))return;
+  var pid=l.pid;
+  if(l._fid&&window._db){var fs=window._fs;fs.deleteDoc(fs.doc(window._db,'laboratorio',l._fid));}
+  LABS=LABS.filter(function(x){return x.id!==id;});
+  showPac(pid);toast('Examen eliminado');
+}
 
 /* PACIENTES */
 function rPacs(){
@@ -747,9 +769,10 @@ function showPac(id){
   var phdr='<div class="phdr"><div class="pav">'+xe(p.n[0]+p.a[0])+'</div><div style="flex:1"><div class="pn">'+xe(p.n)+' '+xe(p.a)+'</div><div class="ps">'+xe(p.ced)+' - '+a+' anos - '+xe(p.sex)+' - '+xe(p.sg)+' - '+xe(p.tel)+'</div><div class="ptags">'+(p.seg?'<span class="tag tgb">'+xe(p.seg)+'</span>':'')+(alg?'<span class="tag tgr">! '+xe(p.alg)+'</span>':'<span class="tag tg">Sin alergias</span>')+(p.ocu?'<span class="tag tgg">'+xe(p.ocu)+'</span>':'')+'</div></div><div style="display:flex;gap:5px"><button class="btn bs btn-sm" onclick="openConsFor('+p.id+')">Consulta</button><button class="btn bp btn-sm" onclick="openRxFor('+p.id+')">Receta</button><button class="btn bg-btn btn-sm" onclick="openLabFor('+p.id+')">Lab</button></div></div>';
   var tl=pc.length===0?'<p style="font-size:11px;color:var(--mu)">Sin consultas.</p>':pc.map(function(c,i){return '<div class="tli"><div class="tld'+(i>0?' old':'')+'"></div><div class="tlb"><div class="tldate">'+fD(c.f)+' - '+xe(c.t)+'</div><div class="tltype">'+xe(c.dx.split('-')[0].trim())+'</div><div class="tltext">'+xe(c.m)+'</div></div></div>';}).join('');
   var res='<div class="g2" style="margin-bottom:13px"><div class="card"><div class="ct">Antecedentes</div><p style="font-size:11px;line-height:1.7">'+xe(p.ant||'Sin antecedentes.')+(p.antf?'<br><em style="color:var(--mu)">Familiares: '+xe(p.antf)+'</em>':'')+'</p></div><div class="card"><div class="ct">Ultimos Signos Vitales</div>'+(pc.length>0?vitBox(pc[0]):'<p style="font-size:11px;color:var(--mu)">Sin registros.</p>')+'</div></div><div class="card"><div class="ct">Historial Clinico</div><div class="tl">'+tl+'</div></div>';
-  var cPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openConsFor('+p.id+')">+ Nueva</button></div>'+(pc.length===0?'<div class="empty"><div class="eic">&#129786;</div><h3>Sin consultas</h3></div>':pc.map(function(c){return '<div class="card" style="margin-bottom:11px"><div class="ct">'+fD(c.f)+' - '+xe(c.t)+' <span class="tag tg">'+xe(c.dx.split(' ')[0])+'</span></div><div class="g2" style="margin-bottom:8px"><div><label>Motivo</label><p style="font-size:11px">'+xe(c.m)+'</p></div><div><label>Diagnostico</label><p style="font-size:11px">'+xe(c.dx)+'</p></div></div>'+vitBox(c)+(c.an?'<div style="margin-top:7px"><label>Anamnesis</label><p style="font-size:11px;line-height:1.5">'+xe(c.an)+'</p></div>':'')+(c.ex?'<div style="margin-top:5px"><label>Examen Fisico</label><p style="font-size:11px;line-height:1.5">'+xe(c.ex)+'</p></div>':'')+(c.pl?'<div style="margin-top:5px"><label>Plan</label><p style="font-size:11px;line-height:1.5">'+xe(c.pl)+'</p></div>':'')+'</div>';}).join(''));
-  var rPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openRxFor('+p.id+')">+ Nueva Receta</button></div>'+(pr.length===0?'<div class="empty"><div class="eic">&#128138;</div><h3>Sin recetas</h3></div>':pr.map(function(r){return rxPaper(r,p);}).join('')+'<button class="btn bs btn-sm" onclick="window.print()">Imprimir</button>');
-  var lPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bg-btn btn-sm" onclick="openLabFor('+p.id+')">+ Solicitar</button></div>'+(pl.length===0?'<div class="empty"><div class="eic">&#128300;</div><h3>Sin examenes</h3></div>':pl.map(function(l){var sc=l.est==='Resultado Disponible'?'tg':l.est==='En Proceso'?'tgo':'tgb';return '<div class="card" style="margin-bottom:9px"><div class="ct">'+xe(l.t)+' - '+fD(l.f)+' <span class="tag '+sc+'">'+xe(l.est)+'</span></div>'+(l.ind?'<p style="font-size:10px;color:var(--mu);margin-bottom:6px">'+xe(l.ind)+'</p>':'')+(l.res?'<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:3px;padding:7px;font-family:DM Mono,monospace;font-size:10px;margin-bottom:6px">'+xe(l.res)+'</div>':'')+(l.int?'<div class="alert ai">'+xe(l.int)+'</div>':'')+'</div>';}).join(''));
+  var cu=window._currentUser;
+  var cPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openConsFor('+p.id+')">+ Nueva</button></div>'+(pc.length===0?'<div class="empty"><div class="eic">&#129786;</div><h3>Sin consultas</h3></div>':pc.map(function(c){var isOwn=cu&&c.createdBy===cu.uid;var autor=c.createdByName?'<span style="font-size:10px;color:var(--mu);margin-left:6px">&#128100; '+xe(c.createdByName)+'</span>':'';var delBtn=isOwn?'<button class="btn bs btn-xs" style="float:right" onclick="delCons('+c.id+')">&#128465;</button>':'';return '<div class="card" style="margin-bottom:11px"><div class="ct">'+fD(c.f)+' - '+xe(c.t)+' <span class="tag tg">'+xe(c.dx.split(' ')[0])+'</span>'+autor+delBtn+'</div><div class="g2" style="margin-bottom:8px"><div><label>Motivo</label><p style="font-size:11px">'+xe(c.m)+'</p></div><div><label>Diagnostico</label><p style="font-size:11px">'+xe(c.dx)+'</p></div></div>'+vitBox(c)+(c.an?'<div style="margin-top:7px"><label>Anamnesis</label><p style="font-size:11px;line-height:1.5">'+xe(c.an)+'</p></div>':'')+(c.ex?'<div style="margin-top:5px"><label>Examen Fisico</label><p style="font-size:11px;line-height:1.5">'+xe(c.ex)+'</p></div>':'')+(c.pl?'<div style="margin-top:5px"><label>Plan</label><p style="font-size:11px;line-height:1.5">'+xe(c.pl)+'</p></div>':'')+'</div>';}).join(''));
+  var rPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openRxFor('+p.id+')">+ Nueva Receta</button></div>'+(pr.length===0?'<div class="empty"><div class="eic">&#128138;</div><h3>Sin recetas</h3></div>':pr.map(function(r){var isOwn=cu&&r.createdBy===cu.uid;var autor=r.createdByName?'<div style="font-size:10px;color:var(--mu);margin-bottom:6px">&#128100; Emitida por: <strong>'+xe(r.createdByName)+'</strong></div>':'';return autor+rxPaper(r,p);}).join('')+'<button class="btn bs btn-sm" onclick="window.print()">Imprimir</button>');
+  var lPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bg-btn btn-sm" onclick="openLabFor('+p.id+')">+ Solicitar</button></div>'+(pl.length===0?'<div class="empty"><div class="eic">&#128300;</div><h3>Sin examenes</h3></div>':pl.map(function(l){var sc=l.est==='Resultado Disponible'?'tg':l.est==='En Proceso'?'tgo':'tgb';var isOwn=cu&&l.createdBy===cu.uid;var autor=l.createdByName?'<span style="font-size:10px;color:var(--mu);margin-left:6px">&#128100; '+xe(l.createdByName)+'</span>':'';var delBtn=isOwn?'<button class="btn bs btn-xs" style="float:right" onclick="delLab('+l.id+')">&#128465;</button>':'';return '<div class="card" style="margin-bottom:9px"><div class="ct">'+xe(l.t)+' - '+fD(l.f)+' <span class="tag '+sc+'">'+xe(l.est)+'</span>'+autor+delBtn+'</div>'+(l.ind?'<p style="font-size:10px;color:var(--mu);margin-bottom:6px">'+xe(l.ind)+'</p>':'')+(l.res?'<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:3px;padding:7px;font-family:DM Mono,monospace;font-size:10px;margin-bottom:6px">'+xe(l.res)+'</div>':'')+(l.int?'<div class="alert ai">'+xe(l.int)+'</div>':'')+'</div>';}).join(''));
   var ciPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bs btn-sm" onclick="openCitaFor('+p.id+')">+ Agendar</button></div>'+(pci.length===0?'<div class="empty"><div class="eic">&#128197;</div><h3>Sin citas</h3></div>':pci.map(citaCard).join(''));
   var dPane='<div class="card"><div class="ct">Informacion Personal</div><div class="g3"><div class="fg"><label>Nombre</label><input value="'+xe(p.n)+'" readonly></div><div class="fg"><label>Apellido</label><input value="'+xe(p.a)+'" readonly></div><div class="fg"><label>Cedula</label><input value="'+xe(p.ced)+'" readonly></div><div class="fg"><label>Fecha Nac.</label><input value="'+xe(p.dob)+'" readonly></div><div class="fg"><label>Sexo</label><input value="'+xe(p.sex)+'" readonly></div><div class="fg"><label>Tipo Sangre</label><input value="'+xe(p.sg||'--')+'" readonly></div><div class="fg"><label>Telefono</label><input value="'+xe(p.tel)+'" readonly></div><div class="fg"><label>Email</label><input value="'+xe(p.em||'--')+'" readonly></div><div class="fg"><label>Seguro</label><input value="'+xe(p.seg||'--')+'" readonly></div></div><div class="fg"><label>Direccion</label><input value="'+xe(p.dir||'--')+'" readonly></div><div class="fg"><label>Emergencia</label><input value="'+xe(p.emg||'--')+'" readonly></div><div class="g2"><div class="fg"><label>Alergias</label><textarea readonly style="background:var(--bg)">'+xe(p.alg||'--')+'</textarea></div><div class="fg"><label>Antecedentes</label><textarea readonly style="background:var(--bg)">'+xe(p.ant||'--')+'</textarea></div></div><div class="fg"><label>Antecedentes Familiares</label><textarea readonly style="background:var(--bg)">'+xe(p.antf||'--')+'</textarea></div></div>';
   setMain(
@@ -988,7 +1011,8 @@ function savePac(){
 function saveCons(){
   var pid=parseInt(gv('nc-p')),m=gv('nc-m').trim();
   if(!m){toast('El motivo es requerido','err');return;}
-  var obj={id:Date.now(),pid:pid,f:gv('nc-f')||TODAY,t:gv('nc-t'),m:m,ta:gv('nc-ta'),fc:gv('nc-fc'),tp:gv('nc-tp'),o2:gv('nc-o2'),gl:gv('nc-gl'),pe:gv('nc-pe'),ta2:gv('nc-ta2'),fr:gv('nc-fr'),pa:gv('nc-pa'),an:gv('nc-an'),ex:gv('nc-ex'),dx:gv('nc-dx')||'Sin diagnostico',es:gv('nc-es'),pl:gv('nc-pl'),px:gv('nc-px'),ob:gv('nc-ob')};
+  var cu=window._currentUser;
+  var obj={id:Date.now(),pid:pid,f:gv('nc-f')||TODAY,t:gv('nc-t'),m:m,ta:gv('nc-ta'),fc:gv('nc-fc'),tp:gv('nc-tp'),o2:gv('nc-o2'),gl:gv('nc-gl'),pe:gv('nc-pe'),ta2:gv('nc-ta2'),fr:gv('nc-fr'),pa:gv('nc-pa'),an:gv('nc-an'),ex:gv('nc-ex'),dx:gv('nc-dx')||'Sin diagnostico',es:gv('nc-es'),pl:gv('nc-pl'),px:gv('nc-px'),ob:gv('nc-ob'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
   CONS.push(obj);
   if(window._db){fbSave('consultas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moCons');renderSide();badges();
@@ -1000,7 +1024,8 @@ function saveCons(){
 function saveCita(){
   var pid=parseInt(gv('ci-p')),f=gv('ci-f'),h=gv('ci-h');
   if(!f||!h){toast('Fecha y hora requeridas','err');return;}
-  var obj={id:Date.now(),pid:pid,f:f,h:h,t:gv('ci-t'),d:gv('ci-d'),n:gv('ci-n'),e:gv('ci-e')};
+  var cu=window._currentUser;
+  var obj={id:Date.now(),pid:pid,f:f,h:h,t:gv('ci-t'),d:gv('ci-d'),n:gv('ci-n'),e:gv('ci-e'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
   CITAS.push(obj);
   if(window._db){fbSave('citas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moCita');badges();
@@ -1014,7 +1039,8 @@ function saveRx(){
   document.querySelectorAll('#rxmeds .mrw').forEach(function(row){var n=row.querySelector('.rn').value.trim();if(n)meds.push({n:n,d:row.querySelector('.rd').value,i:row.querySelector('.ri').value,di:row.querySelector('.rdi').value});});
   if(!meds.length){toast('Agregue al menos un medicamento','err');return;}
   var num='RX-'+new Date().getFullYear()+'-'+String(rxN++).padStart(3,'0');
-  var obj={id:Date.now(),pid:pid,f:gv('rx-f')||TODAY,num:num,dx:gv('rx-dx')||'--',meds:meds,ind:gv('rx-ind'),obs:gv('rx-obs'),vd:gv('rx-vd')};
+  var cu=window._currentUser;
+  var obj={id:Date.now(),pid:pid,f:gv('rx-f')||TODAY,num:num,dx:gv('rx-dx')||'--',meds:meds,ind:gv('rx-ind'),obs:gv('rx-obs'),vd:gv('rx-vd'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
   RXS.push(obj);
   if(window._db){fbSave('recetas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   var rn=ge('rx-num');if(rn)rn.value='RX-'+new Date().getFullYear()+'-'+String(rxN).padStart(3,'0');
@@ -1025,7 +1051,8 @@ function saveRx(){
 }
 function saveLab(){
   var pid=parseInt(gv('lb-p'));
-  var obj={id:Date.now(),pid:pid,f:gv('lb-f')||TODAY,t:gv('lb-t'),ind:gv('lb-ind'),est:gv('lb-est'),res:gv('lb-res'),int:gv('lb-int')};
+  var cu=window._currentUser;
+  var obj={id:Date.now(),pid:pid,f:gv('lb-f')||TODAY,t:gv('lb-t'),ind:gv('lb-ind'),est:gv('lb-est'),res:gv('lb-res'),int:gv('lb-int'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
   LABS.push(obj);
   if(window._db){fbSave('laboratorio',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moLab');badges();
@@ -1051,7 +1078,8 @@ function saveFac(){
   var base=sub-examt;
   var tax=base*0.07,tot=sub+tax;
   var num='FAC-'+new Date().getFullYear()+'-'+String(facN++).padStart(3,'0');
-  var obj={id:Date.now(),pid:pid,f:gv('fc-f')||TODAY,num:num,mp:gv('fc-mp'),items:items,sub:sub,examt:examt,base:base,tax:tax,tot:tot,n:gv('fc-n'),est:'Pendiente'};
+  var cu=window._currentUser;
+  var obj={id:Date.now(),pid:pid,f:gv('fc-f')||TODAY,num:num,mp:gv('fc-mp'),items:items,sub:sub,examt:examt,base:base,tax:tax,tot:tot,n:gv('fc-n'),est:'Pendiente',createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
   FACS.push(obj);
   if(window._db){fbSave('facturas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moFac');
