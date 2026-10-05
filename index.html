@@ -29,6 +29,9 @@ const auth = getAuth(app);
 // Persistencia de sesión solo por pestaña: pide login al reabrir la página
 await setPersistence(auth, browserSessionPersistence);
 
+// Cerrar sesión previa al cargar (limpia cualquier sesión guardada en localStorage)
+await signOut(auth);
+
 // Exponer globalmente para uso en funciones JS clásico
 window._db = db;
 window._auth = auth;
@@ -508,46 +511,12 @@ var rxN = 4, facN = 4, curMod = 'dash', selPac = null;
 
 var CFG = {doc:'Dr. Jose Garcia',esp:'Medicina Interna',mp:'MP-12345',ruc:'8-123-4567-890',cli:'Centro Medico San Rafael',dir:'Calle 50, Marbella, Panama',tel:'(507) 200-0000',email:'clinica@sanrafael.com.pa'};
 
-var PACS = [
-  {id:1,n:'Maria',a:'Gonzalez',ced:'8-123-456',dob:'1975-03-15',sex:'Femenino',tel:'+507 6111-2222',em:'maria@gmail.com',sg:'A+',ec:'Casada',ocu:'Docente',seg:'Seguros Banistmo',pol:'SB-001234',dir:'El Carmen, Panama',emg:'Pedro Gonzalez 6111-3333',alg:'AINEs - rash cutaneo',ant:'Hipertension arterial desde 2015.',antf:'Madre diabetica. Padre HTA.'},
-  {id:2,n:'Carlos',a:'Rodriguez',ced:'4-567-890',dob:'1988-07-22',sex:'Masculino',tel:'+507 6333-4444',em:'carlos@hotmail.com',sg:'O+',ec:'Soltero',ocu:'Ingeniero',seg:'ASSA Seguros',pol:'AS-005678',dir:'San Francisco, Panama',emg:'Laura Rodriguez 6333-5555',alg:'Ninguna conocida',ant:'Sin antecedentes relevantes.',antf:'Abuelo diabetico.'},
-  {id:3,n:'Ana',a:'Martinez',ced:'6-789-123',dob:'1962-11-30',sex:'Femenino',tel:'+507 6555-6666',em:'ana.m@gmail.com',sg:'B+',ec:'Viuda',ocu:'Comerciante',seg:'Mapfre Panama',pol:'MP-009012',dir:'Bella Vista, Panama',emg:'Jorge Martinez 6555-7777',alg:'Penicilina - anafilaxia',ant:'Diabetes Mellitus tipo 2 (2010). Histerectomia (2018).',antf:'Madre diabetica.'},
-  {id:4,n:'Luis',a:'Perez',ced:'9-234-567',dob:'1955-05-18',sex:'Masculino',tel:'+507 6777-8888',em:'luis.p@gmail.com',sg:'AB+',ec:'Casado',ocu:'Jubilado',seg:'CSS',pol:'--',dir:'Juan Diaz, Panama',emg:'Carmen Perez 6777-9999',alg:'Sulfonamidas',ant:'HTA. Dislipidemia. IAM 2019.',antf:'Padre fallecido IAM.'}
-];
-
-var CONS = [
-  {id:1,pid:1,f:'2026-04-17',t:'Control',m:'Control de tension arterial',ta:'145/90',fc:'78',tp:'36.5',o2:'98',gl:'',pe:'68',ta2:'162',fr:'16',pa:'88',an:'Paciente refiere cefalea occipital leve. Cumple medicacion.',ex:'Lucida. TA elevada bilateral.',dx:'I10 - Hipertension esencial primaria',es:'',pl:'Ajuste Losartan 100mg. Control 15 dias.',px:'2026-05-02',ob:''},
-  {id:2,pid:2,f:'2026-04-12',t:'Primera Consulta',m:'Cefaleas frecuentes 3 meses',ta:'125/82',fc:'76',tp:'36.7',o2:'99',gl:'',pe:'82',ta2:'178',fr:'14',pa:'90',an:'Cefaleas tensionales 3-4 por semana.',ex:'BEG. Sin focalidad neurologica.',dx:'G44.3 - Cefalea tensional cronica',es:'TAC craneo simple',pl:'Ibuprofeno 400mg PRN. Relajacion.',px:'2026-05-15',ob:''},
-  {id:3,pid:3,f:'2026-04-14',t:'Seguimiento',m:'Control glicemico trimestral',ta:'128/80',fc:'80',tp:'36.8',o2:'97',gl:'180',pe:'75',ta2:'158',fr:'18',pa:'95',an:'Glucemias en ayunas 160-200 mg/dL.',ex:'Edema leve pretibial. Monofilamento normal.',dx:'E11 - Diabetes mellitus tipo 2',es:'HbA1c, microalbuminuria',pl:'Ajuste insulina 14UI. Dieta. Podologia.',px:'2026-05-14',ob:''},
-  {id:4,pid:4,f:'2026-04-10',t:'Control',m:'Control cardiaco post-IAM',ta:'130/82',fc:'68',tp:'36.6',o2:'98',gl:'',pe:'79',ta2:'170',fr:'15',pa:'99',an:'Sin angina. Bien tolerando medicacion.',ex:'Ritmo regular. Sin soplos.',dx:'I25.1 - Enfermedad coronaria con stent',es:'ECG, ecocardiograma',pl:'Continuar doble antiagregacion.',px:'2026-07-10',ob:''}
-];
-
-var RXS = [
-  {id:1,pid:1,f:'2026-04-17',num:'RX-2026-001',dx:'HTA',meds:[{n:'Losartan',d:'100mg',i:'1 tab manana',di:'30'},{n:'Amlodipino',d:'5mg',i:'1 tab noche',di:'30'}],ind:'Dieta hiposodica. Ejercicio 30 min/dia.',obs:'Control TA en 15 dias.',vd:'2026-05-17'},
-  {id:2,pid:3,f:'2026-04-14',num:'RX-2026-002',dx:'DM2',meds:[{n:'Insulina Glargina',d:'14 UI',i:'SC noche',di:'30'},{n:'Metformina',d:'850mg',i:'1 tab 2x dia',di:'30'}],ind:'Monitoreo glicemia 2x dia.',obs:'Control con HbA1c.',vd:'2026-05-14'},
-  {id:3,pid:4,f:'2026-04-10',num:'RX-2026-003',dx:'Enf. Coronaria',meds:[{n:'AAS',d:'100mg',i:'1 tab desayuno',di:'90'},{n:'Clopidogrel',d:'75mg',i:'1 tab desayuno',di:'90'},{n:'Atorvastatina',d:'80mg',i:'1 tab noche',di:'90'}],ind:'No suspender medicacion.',obs:'Eco en 3 meses.',vd:'2026-07-10'}
-];
-
-var CITAS = [
-  {id:1,pid:1,f:'2026-04-19',h:'10:00',t:'Control',d:'30 min',n:'Control mensual HTA',e:'Confirmada'},
-  {id:2,pid:2,f:'2026-04-19',h:'11:30',t:'Primera Consulta',d:'45 min',n:'Revision TAC',e:'Programada'},
-  {id:3,pid:4,f:'2026-04-19',h:'15:00',t:'Control',d:'30 min',n:'Control cardiaco',e:'Confirmada'},
-  {id:4,pid:3,f:'2026-05-14',h:'09:00',t:'Seguimiento',d:'30 min',n:'Control DM2 con HbA1c',e:'Programada'},
-  {id:5,pid:1,f:'2026-05-02',h:'10:30',t:'Control',d:'20 min',n:'Post-ajuste HTA',e:'Programada'}
-];
-
-var LABS = [
-  {id:1,pid:1,f:'2026-04-15',t:'Perfil Lipidico',ind:'Control HTA',est:'Resultado Disponible',res:'Colesterol: 198 mg/dL | HDL: 52 | LDL: 124 | Trigliceridos: 110',int:'Perfil lipidico aceptable.'},
-  {id:2,pid:3,f:'2026-04-14',t:'HbA1c',ind:'Control DM2',est:'Solicitado',res:'',int:''},
-  {id:3,pid:3,f:'2026-04-14',t:'Funcion Renal',ind:'Control DM2',est:'Resultado Disponible',res:'Creatinina: 1.1 | BUN: 18 | TFGe: 62 mL/min',int:'Funcion renal levemente reducida. Estadio G2.'},
-  {id:4,pid:4,f:'2026-04-10',t:'ECG',ind:'Post-IAM',est:'Resultado Disponible',res:'Ritmo sinusal. FC 68 lpm. Onda Q inferior.',int:'IAM inferior antiguo. Sin isquemia activa.'}
-];
-
-var FACS = [
-  {id:1,pid:1,f:'2026-04-17',num:'FAC-2026-001',mp:'Seguro',items:[{d:'Consulta medica control',q:1,p:45,ex:true}],sub:45,examt:45,base:0,tax:0,tot:45,n:'',est:'Pagada'},
-  {id:2,pid:2,f:'2026-04-12',num:'FAC-2026-002',mp:'Tarjeta',items:[{d:'Primera consulta',q:1,p:60,ex:true}],sub:60,examt:60,base:0,tax:0,tot:60,n:'',est:'Pagada'},
-  {id:3,pid:3,f:'2026-04-14',num:'FAC-2026-003',mp:'Efectivo',items:[{d:'Consulta seguimiento',q:1,p:45,ex:true},{d:'Solicitud HbA1c',q:1,p:25,ex:false}],sub:70,examt:45,base:25,tax:1.75,tot:71.75,n:'',est:'Pendiente'}
-];
+var PACS = [];
+var CONS = [];
+var RXS  = [];
+var CITAS = [];
+var LABS  = [];
+var FACS  = [];
 
 /* UTILS */
 function gv(id){var e=document.getElementById(id);return e?e.value:'';}
