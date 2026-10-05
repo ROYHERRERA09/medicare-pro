@@ -352,6 +352,7 @@ input[readonly]{background:var(--bg);color:var(--mu)}
   <button class="ni" onclick="go('fac',this)"><span class="ic">&#128176;</span>Facturacion</button>
   <button class="ni" onclick="go('est',this)"><span class="ic">&#128200;</span>Estadisticas</button>
   <button class="ni" onclick="go('cfg',this)"><span class="ic">&#9881;</span>Configuracion</button>
+  <button class="ni" id="admin-nav-btn" onclick="go('admin',this)" style="display:none;color:#c0392b;font-weight:600"><span class="ic">&#128737;</span>Administrador</button>
   <div class="ndiv"></div>
   <div class="nlbl">Pacientes</div>
   <div class="plist" id="sideList"></div>
@@ -509,6 +510,41 @@ input[readonly]{background:var(--bg);color:var(--mu)}
 var TODAY = new Date().toISOString().split('T')[0];
 var rxN = 4, facN = 4, curMod = 'dash', selPac = null;
 
+/* ═══════════ ADMIN MAESTRO ═══════════ */
+var ADMIN_EMAIL = ''; // se carga desde Firestore (config/admin)
+var ADMIN_UID   = ''; // respaldo por UID
+var AUDIT_LOG = [];
+
+function isAdmin(){
+  var cu=window._currentUser;
+  if(!cu)return false;
+  if(ADMIN_UID  && cu.uid   === ADMIN_UID)  return true;
+  if(ADMIN_EMAIL && cu.email && cu.email.toLowerCase()===ADMIN_EMAIL.toLowerCase()) return true;
+  return false;
+}
+
+function auditLog(accion, detalle){
+  var cu=window._currentUser;
+  var entry={
+    ts:Date.now(),
+    fecha:new Date().toLocaleString('es-PA'),
+    uid:cu?cu.uid:'',
+    email:cu?cu.email:'',
+    accion:accion,
+    detalle:detalle
+  };
+  AUDIT_LOG.unshift(entry);
+  // Guardar en Firestore
+  if(window._db){
+    window._fs.addDoc(window._fs.collection(window._db,'auditoria'),entry).catch(function(){});
+  }
+}
+
+function showAdminBtn(){
+  var btn=ge('admin-nav-btn');
+  if(btn)btn.style.display=isAdmin()?'flex':'none';
+}
+
 var CFG = {doc:'',esp:'',mp:'',ruc:'',cli:'',dir:'',tel:'',email:''};
 
 var PACS = [];
@@ -569,7 +605,7 @@ function go(mod,btn){
   curMod=mod;
   document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('on');});
   if(btn)btn.classList.add('on');
-  var map={dash:rDash,agenda:rAgenda,pacs:rPacs,cons:rCons,rxs:rRxs,lab:rLab,fac:rFac,est:rEst,cfg:rCfg,rxdigital:rRxDigital};
+  var map={dash:rDash,agenda:rAgenda,pacs:rPacs,cons:rCons,rxs:rRxs,lab:rLab,fac:rFac,est:rEst,cfg:rCfg,rxdigital:rRxDigital,admin:rAdmin};
   if(map[mod])map[mod]();
 }
 function setMain(h){sh('main',h);}
@@ -709,12 +745,27 @@ function buildCal(){
   return h+'</div>';
 }
 function markCita(id){var c=CITAS.find(function(x){return x.id===id;});if(c){c.e='Completada';rAgenda();toast('Cita completada');}}
-function delCita(id){if(confirm('Cancelar esta cita?')){CITAS=CITAS.filter(function(c){return c.id!==id;});rAgenda();badges();toast('Cita cancelada');}}
+function delCita(id){
+  var c=CITAS.find(function(x){return x.id===id;});
+  if(!c)return;
+  var cu=window._currentUser;
+  if(cu&&c.createdBy&&c.createdBy!==cu.uid){toast('Solo puede cancelar sus propias citas','err');return;}
+  if(!dentro24h(c.createdAt)){toast('No se puede modificar un registro de mas de 24 horas','err');return;}
+  if(!confirm('Cancelar esta cita?'))return;
+  if(c._fid&&window._db){var fs=window._fs;fs.deleteDoc(fs.doc(window._db,'citas',c._fid));}
+  CITAS=CITAS.filter(function(x){return x.id!==id;});
+  rAgenda();badges();toast('Cita cancelada');
+}
+function dentro24h(createdAt){
+  if(!createdAt)return true; // si no tiene timestamp, asume que es reciente
+  return (Date.now() - createdAt) < 24*60*60*1000;
+}
 function delCons(id){
   var c=CONS.find(function(x){return x.id===id;});
   if(!c)return;
   var cu=window._currentUser;
   if(cu&&c.createdBy&&c.createdBy!==cu.uid){toast('Solo puede eliminar sus propias consultas','err');return;}
+  if(!dentro24h(c.createdAt)){toast('No se puede modificar un registro de mas de 24 horas','err');return;}
   if(!confirm('Eliminar esta consulta?'))return;
   var pid=c.pid;
   if(c._fid&&window._db){var fs=window._fs;fs.deleteDoc(fs.doc(window._db,'consultas',c._fid));}
@@ -726,11 +777,234 @@ function delLab(id){
   if(!l)return;
   var cu=window._currentUser;
   if(cu&&l.createdBy&&l.createdBy!==cu.uid){toast('Solo puede eliminar sus propios examenes','err');return;}
+  if(!dentro24h(l.createdAt)){toast('No se puede modificar un registro de mas de 24 horas','err');return;}
   if(!confirm('Eliminar este examen?'))return;
   var pid=l.pid;
   if(l._fid&&window._db){var fs=window._fs;fs.deleteDoc(fs.doc(window._db,'laboratorio',l._fid));}
   LABS=LABS.filter(function(x){return x.id!==id;});
   showPac(pid);toast('Examen eliminado');
+}
+function delRx(id){
+  var r=RXS.find(function(x){return x.id===id;});
+  if(!r)return;
+  var cu=window._currentUser;
+  if(cu&&r.createdBy&&r.createdBy!==cu.uid){toast('Solo puede eliminar sus propias recetas','err');return;}
+  if(!dentro24h(r.createdAt)){toast('No se puede modificar un registro de mas de 24 horas','err');return;}
+  if(!confirm('Eliminar esta receta?'))return;
+  var pid=r.pid;
+  if(r._fid&&window._db){var fs=window._fs;fs.deleteDoc(fs.doc(window._db,'recetas',r._fid));}
+  RXS=RXS.filter(function(x){return x.id!==id;});
+  showPac(pid);toast('Receta eliminada');
+}
+function delFac(id){
+  var f=FACS.find(function(x){return x.id===id;});
+  if(!f)return;
+  var cu=window._currentUser;
+  if(cu&&f.createdBy&&f.createdBy!==cu.uid){toast('Solo puede eliminar sus propias facturas','err');return;}
+  if(!dentro24h(f.createdAt)){toast('No se puede modificar un registro de mas de 24 horas','err');return;}
+  if(!confirm('Eliminar esta factura?'))return;
+  if(f._fid&&window._db){var fs=window._fs;fs.deleteDoc(fs.doc(window._db,'facturas',f._fid));}
+  FACS=FACS.filter(function(x){return x.id!==id;});
+  if(curMod==='fac')rFac();
+  toast('Factura eliminada');
+}
+
+/* ═══════════ PANEL ADMINISTRADOR MAESTRO ═══════════ */
+function rAdmin(){
+  if(!isAdmin()){toast('Acceso denegado','err');go('dash');return;}
+  curMod='admin';
+  var html='<div class="mhdr"><div><div class="mtitle" style="color:#c0392b">&#128737; Panel de Administrador</div><div class="msub">Acceso maestro — '+xe(window._currentUser.email)+'</div></div></div>'
+  +'<div class="mcont">'
+  +'<div class="tabbar" id="adT">'
+  +'<button class="tb on" onclick="swTab(\'adT\',\'ad-users\',this)">&#128101; Usuarios</button>'
+  +'<button class="tb" onclick="swTab(\'adT\',\'ad-records\',this)">&#128196; Registros</button>'
+  +'<button class="tb" onclick="swTab(\'adT\',\'ad-audit\',this)">&#128220; Auditoria</button>'
+  +'<button class="tb" onclick="swTab(\'adT\',\'ad-cfg\',this)">&#9881; Configuracion</button>'
+  +'</div>'
+  +'<div class="pane on" id="ad-users">'+adminUsersPane()+'</div>'
+  +'<div class="pane" id="ad-records">'+adminRecordsPane()+'</div>'
+  +'<div class="pane" id="ad-audit">'+adminAuditPane()+'</div>'
+  +'<div class="pane" id="ad-cfg">'+adminCfgPane()+'</div>'
+  +'</div>';
+  setMain(html);
+}
+
+function adminUsersPane(){
+  // Recopilar doctores únicos de los registros
+  var doctores={};
+  function addDoc(r){if(r.createdBy&&r.createdByName){doctores[r.createdBy]={uid:r.createdBy,name:r.createdByName};}}
+  CONS.forEach(addDoc);LABS.forEach(addDoc);RXS.forEach(addDoc);CITAS.forEach(addDoc);FACS.forEach(addDoc);
+  var list=Object.values(doctores);
+  var cu=window._currentUser;
+  var html='<div class="card"><div class="ct">Medicos registrados en el sistema</div>';
+  if(list.length===0){html+='<p style="font-size:12px;color:var(--mu)">No hay registros de otros medicos aun.</p>';}
+  else{
+    html+='<table class="tbl"><thead><tr><th>Medico</th><th>UID</th><th>Registros</th><th>Admin</th></tr></thead><tbody>';
+    list.forEach(function(d){
+      var total=CONS.filter(function(r){return r.createdBy===d.uid;}).length
+        +LABS.filter(function(r){return r.createdBy===d.uid;}).length
+        +RXS.filter(function(r){return r.createdBy===d.uid;}).length;
+      var isMe=d.uid===cu.uid;
+      html+='<tr><td><strong>'+xe(d.name)+'</strong>'+(isMe?' <span class="tag tg">Yo</span>':'')+'</td>'
+        +'<td style="font-size:10px;color:var(--mu);font-family:DM Mono,monospace">'+xe(d.uid.substring(0,16))+'...</td>'
+        +'<td>'+total+'</td>'
+        +'<td>'+(d.uid===cu.uid?'<span class="tag tg">&#128737; Maestro</span>':'<span class="tag">Doctor</span>')+'</td>'
+        +'</tr>';
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>'
+  +'<div class="card" style="margin-top:14px;border:1px solid #e74c3c"><div class="ct" style="color:#c0392b">&#128737; Administrador Maestro Actual</div>'
+  +'<div style="padding:6px 0 10px"><div style="font-size:12px"><strong>Email:</strong> '+xe(ADMIN_EMAIL||'--')+'</div>'
+  +'<div style="font-size:11px;color:var(--mu);margin-top:2px"><strong>UID:</strong> '+xe(ADMIN_UID||'--')+'</div></div>'
+  +'<div style="border-top:1px solid var(--bd);padding-top:10px;margin-top:4px">'
+  +'<div style="font-size:11px;font-weight:600;margin-bottom:7px">Transferir rol de administrador a otro medico:</div>'
+  +'<div class="g2"><div class="fg"><label>Seleccionar medico</label>'
+  +'<select id="adm-transfer-sel"><option value="">-- Seleccione --</option>'
+  +list.filter(function(d){return d.uid!==cu.uid;}).map(function(d){return '<option value="'+xe(d.uid)+'|'+xe(d.name||'')+'|'+xe(window._currentUser&&d.uid===window._currentUser.email?d.uid:d.email||'')+'">'+xe(d.name)+'</option>';}).join('')
+  +'</select></div>'
+  +'<div class="fg" style="align-self:flex-end"><button class="btn" style="background:#c0392b;color:#fff" onclick="adminTransfer()">&#128737; Transferir Admin</button></div></div>'
+  +'<p style="font-size:10px;color:var(--mu);margin-top:6px">&#9888; Al transferir, usted pierde el acceso de administrador inmediatamente.</p>'
+  +'</div></div>';
+  return html;
+}
+
+function adminTransfer(){
+  var sel=gv('adm-transfer-sel');
+  if(!sel){toast('Seleccione un medico','err');return;}
+  var parts=sel.split('|');
+  var nuevoUid=parts[0], nuevoNom=parts[1];
+  if(!nuevoUid){toast('Medico invalido','err');return;}
+  if(!confirm('Transferir el rol de Administrador Maestro a:\n\n'+nuevoNom+'\n\nUsted perdera el acceso de administrador inmediatamente. Esta accion no se puede deshacer facilmente.'))return;
+  var viejEmail=ADMIN_EMAIL, viejUid=ADMIN_UID;
+  // Buscar email del nuevo admin en los registros
+  var recConNuevo=CONS.find(function(r){return r.createdBy===nuevoUid;})||LABS.find(function(r){return r.createdBy===nuevoUid;});
+  ADMIN_UID=nuevoUid;
+  ADMIN_EMAIL=''; // se limpia, solo queda por UID
+  if(window._db){
+    var fs=window._fs;
+    fs.setDoc(fs.doc(window._db,'config','admin'),{uid:nuevoUid,email:'',nombre:nuevoNom,registradoEn:Date.now()});
+  }
+  auditLog('ADMIN_TRANSFER','De: '+viejEmail+' ('+viejUid+') → A: '+nuevoNom+' ('+nuevoUid+')');
+  toast('Rol transferido a '+nuevoNom);
+  showAdminBtn();
+  go('dash');
+}
+
+function adminRecordsPane(){
+  var tabs='<div class="tabbar" id="adRTab" style="margin-bottom:12px">'
+    +'<button class="tb on" onclick="swTab(\'adRTab\',\'adr-cons\',this)">Consultas ('+CONS.length+')</button>'
+    +'<button class="tb" onclick="swTab(\'adRTab\',\'adr-labs\',this)">Labs ('+LABS.length+')</button>'
+    +'<button class="tb" onclick="swTab(\'adRTab\',\'adr-rxs\',this)">Recetas ('+RXS.length+')</button>'
+    +'<button class="tb" onclick="swTab(\'adRTab\',\'adr-citas\',this)">Citas ('+CITAS.length+')</button>'
+    +'<button class="tb" onclick="swTab(\'adRTab\',\'adr-facs\',this)">Facturas ('+FACS.length+')</button>'
+    +'</div>';
+
+  function recRow(r,tipo,delFn){
+    var p=pat(r.pid);var pnm=p?xe(p.n)+' '+xe(p.a):'Paciente '+r.pid;
+    var age24=!dentro24h(r.createdAt);
+    var ts=r.createdAt?new Date(r.createdAt).toLocaleString('es-PA'):'--';
+    return '<tr>'
+      +'<td>'+pnm+'</td>'
+      +'<td style="font-size:10px">'+xe(r.createdByName||'--')+'</td>'
+      +'<td style="font-size:10px">'+ts+'</td>'
+      +'<td><span class="tag '+(age24?'tgr':'tg')+'">'+(age24?'> 24h':'< 24h')+'</span></td>'
+      +'<td><button class="btn btn-xs" style="background:#c0392b;color:#fff" onclick="adminDel(\''+tipo+'\','+r.id+')">&#128465; Forzar</button></td>'
+      +'</tr>';
+  }
+
+  var consHtml='<table class="tbl"><thead><tr><th>Paciente</th><th>Medico</th><th>Creado</th><th>Estado</th><th>Accion</th></tr></thead><tbody>'
+    +CONS.map(function(r){return recRow(r,'cons');}).join('')+'</tbody></table>';
+  var labsHtml='<table class="tbl"><thead><tr><th>Paciente</th><th>Medico</th><th>Creado</th><th>Estado</th><th>Accion</th></tr></thead><tbody>'
+    +LABS.map(function(r){return recRow(r,'labs');}).join('')+'</tbody></table>';
+  var rxsHtml='<table class="tbl"><thead><tr><th>Paciente</th><th>Medico</th><th>Creado</th><th>Estado</th><th>Accion</th></tr></thead><tbody>'
+    +RXS.map(function(r){return recRow(r,'rxs');}).join('')+'</tbody></table>';
+  var citasHtml='<table class="tbl"><thead><tr><th>Paciente</th><th>Medico</th><th>Creado</th><th>Estado</th><th>Accion</th></tr></thead><tbody>'
+    +CITAS.map(function(r){return recRow(r,'citas');}).join('')+'</tbody></table>';
+  var facsHtml='<table class="tbl"><thead><tr><th>Paciente</th><th>Medico</th><th>Creado</th><th>Estado</th><th>Accion</th></tr></thead><tbody>'
+    +FACS.map(function(r){return recRow(r,'facs');}).join('')+'</tbody></table>';
+
+  return '<div style="margin-bottom:8px"><div class="alert ae" style="font-size:11px">&#9888; Como administrador puede eliminar CUALQUIER registro sin limite de 24 horas. Esta accion queda registrada en la auditoria.</div></div>'
+    +tabs
+    +'<div class="pane on" id="adr-cons">'+consHtml+'</div>'
+    +'<div class="pane" id="adr-labs">'+labsHtml+'</div>'
+    +'<div class="pane" id="adr-rxs">'+rxsHtml+'</div>'
+    +'<div class="pane" id="adr-citas">'+citasHtml+'</div>'
+    +'<div class="pane" id="adr-facs">'+facsHtml+'</div>';
+}
+
+function adminDel(tipo, id){
+  if(!isAdmin()){toast('Acceso denegado','err');return;}
+  var map={cons:CONS,labs:LABS,rxs:RXS,citas:CITAS,facs:FACS};
+  var colMap={cons:'consultas',labs:'laboratorio',rxs:'recetas',citas:'citas',facs:'facturas'};
+  var arr=map[tipo];
+  var rec=arr&&arr.find(function(x){return x.id===id;});
+  if(!rec){toast('Registro no encontrado','err');return;}
+  var p=pat(rec.pid);var pnm=p?p.n+' '+p.a:'pid:'+rec.pid;
+  var age24=!dentro24h(rec.createdAt);
+  var warn=age24?'\n\n⚠ Este registro tiene MAS de 24 horas (protegido para doctores normales).':'';
+  if(!confirm('ADMINISTRADOR: Eliminar este registro de "'+pnm+'"?'+warn+'\n\nEsta accion queda en el log de auditoria.'))return;
+  auditLog('ADMIN_DELETE', 'tipo='+tipo+' id='+id+' paciente='+pnm+' creador='+(rec.createdByName||'--')+' createdAt='+(rec.createdAt||'--'));
+  if(rec._fid&&window._db){var fs=window._fs;fs.deleteDoc(fs.doc(window._db,colMap[tipo],rec._fid));}
+  map[tipo]=arr.filter(function(x){return x.id!==id;});
+  if(tipo==='cons')CONS=map[tipo];
+  else if(tipo==='labs')LABS=map[tipo];
+  else if(tipo==='rxs')RXS=map[tipo];
+  else if(tipo==='citas')CITAS=map[tipo];
+  else if(tipo==='facs')FACS=map[tipo];
+  toast('Registro eliminado por administrador');
+  rAdmin();
+}
+
+function adminAuditPane(){
+  if(AUDIT_LOG.length===0)return '<div class="empty"><div class="eic">&#128220;</div><h3>Sin registros de auditoria</h3><p>Las acciones administrativas apareceran aqui.</p></div>';
+  var html='<div class="card"><div class="ct">Log de Auditoria — '+AUDIT_LOG.length+' eventos</div>'
+    +'<table class="tbl"><thead><tr><th>Fecha</th><th>Usuario</th><th>Accion</th><th>Detalle</th></tr></thead><tbody>'
+    +AUDIT_LOG.map(function(e){
+      return '<tr>'
+        +'<td style="font-size:10px;white-space:nowrap">'+xe(e.fecha||'--')+'</td>'
+        +'<td style="font-size:10px">'+xe(e.email||'--')+'</td>'
+        +'<td><span class="tag tgr" style="font-size:9px">'+xe(e.accion||'--')+'</span></td>'
+        +'<td style="font-size:10px;color:var(--mu)">'+xe(e.detalle||'--')+'</td>'
+        +'</tr>';
+    }).join('')
+    +'</tbody></table></div>';
+  return html;
+}
+
+function adminCfgPane(){
+  return '<div class="card"><div class="ct">Configuracion Global del Sistema</div>'
+    +'<div class="g2">'
+    +'<div class="fg"><label>Nombre de la Clinica</label><input id="adcfg-cli" value="'+xe(CFG.cli)+'" placeholder="Clinica"></div>'
+    +'<div class="fg"><label>Direccion</label><input id="adcfg-dir" value="'+xe(CFG.dir)+'" placeholder="Direccion"></div>'
+    +'<div class="fg"><label>Telefono</label><input id="adcfg-tel" value="'+xe(CFG.tel)+'" placeholder="Telefono"></div>'
+    +'<div class="fg"><label>Email Clinica</label><input id="adcfg-email" value="'+xe(CFG.email)+'" placeholder="Email"></div>'
+    +'</div>'
+    +'<div style="margin-top:12px;text-align:right"><button class="btn" style="background:#c0392b;color:#fff" onclick="adminSaveCfg()">Guardar Configuracion Global</button></div>'
+    +'</div>'
+    +'<div class="card" style="margin-top:14px"><div class="ct">Reglas del Sistema</div>'
+    +'<div style="padding:10px 0">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)">'
+    +'<div><div style="font-size:12px;font-weight:600">Regla de 24 horas</div><div style="font-size:11px;color:var(--mu)">Ningún doctor puede editar o eliminar registros con mas de 24h</div></div>'
+    +'<span class="tag tg">Activa</span></div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)">'
+    +'<div><div style="font-size:12px;font-weight:600">Registros compartidos</div><div style="font-size:11px;color:var(--mu)">Todos los medicos ven todos los pacientes y sus historiales</div></div>'
+    +'<span class="tag tg">Activa</span></div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">'
+    +'<div><div style="font-size:12px;font-weight:600">Auditoria de acciones admin</div><div style="font-size:11px;color:var(--mu)">Toda eliminacion forzada queda registrada en Firestore</div></div>'
+    +'<span class="tag tg">Activa</span></div>'
+    +'</div></div>';
+}
+
+function adminSaveCfg(){
+  if(!isAdmin()){toast('Acceso denegado','err');return;}
+  CFG.cli=gv('adcfg-cli');CFG.dir=gv('adcfg-dir');CFG.tel=gv('adcfg-tel');CFG.email=gv('adcfg-email');
+  if(window._db){
+    var fs=window._fs;
+    fs.setDoc(fs.doc(window._db,'config','clinica'),CFG,{merge:true});
+  }
+  auditLog('ADMIN_CFG','Configuracion global actualizada');
+  toast('Configuracion guardada');
 }
 
 /* PACIENTES */
@@ -770,9 +1044,9 @@ function showPac(id){
   var tl=pc.length===0?'<p style="font-size:11px;color:var(--mu)">Sin consultas.</p>':pc.map(function(c,i){return '<div class="tli"><div class="tld'+(i>0?' old':'')+'"></div><div class="tlb"><div class="tldate">'+fD(c.f)+' - '+xe(c.t)+'</div><div class="tltype">'+xe(c.dx.split('-')[0].trim())+'</div><div class="tltext">'+xe(c.m)+'</div></div></div>';}).join('');
   var res='<div class="g2" style="margin-bottom:13px"><div class="card"><div class="ct">Antecedentes</div><p style="font-size:11px;line-height:1.7">'+xe(p.ant||'Sin antecedentes.')+(p.antf?'<br><em style="color:var(--mu)">Familiares: '+xe(p.antf)+'</em>':'')+'</p></div><div class="card"><div class="ct">Ultimos Signos Vitales</div>'+(pc.length>0?vitBox(pc[0]):'<p style="font-size:11px;color:var(--mu)">Sin registros.</p>')+'</div></div><div class="card"><div class="ct">Historial Clinico</div><div class="tl">'+tl+'</div></div>';
   var cu=window._currentUser;
-  var cPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openConsFor('+p.id+')">+ Nueva</button></div>'+(pc.length===0?'<div class="empty"><div class="eic">&#129786;</div><h3>Sin consultas</h3></div>':pc.map(function(c){var isOwn=cu&&c.createdBy===cu.uid;var autor=c.createdByName?'<span style="font-size:10px;color:var(--mu);margin-left:6px">&#128100; '+xe(c.createdByName)+'</span>':'';var delBtn=isOwn?'<button class="btn bs btn-xs" style="float:right" onclick="delCons('+c.id+')">&#128465;</button>':'';return '<div class="card" style="margin-bottom:11px"><div class="ct">'+fD(c.f)+' - '+xe(c.t)+' <span class="tag tg">'+xe(c.dx.split(' ')[0])+'</span>'+autor+delBtn+'</div><div class="g2" style="margin-bottom:8px"><div><label>Motivo</label><p style="font-size:11px">'+xe(c.m)+'</p></div><div><label>Diagnostico</label><p style="font-size:11px">'+xe(c.dx)+'</p></div></div>'+vitBox(c)+(c.an?'<div style="margin-top:7px"><label>Anamnesis</label><p style="font-size:11px;line-height:1.5">'+xe(c.an)+'</p></div>':'')+(c.ex?'<div style="margin-top:5px"><label>Examen Fisico</label><p style="font-size:11px;line-height:1.5">'+xe(c.ex)+'</p></div>':'')+(c.pl?'<div style="margin-top:5px"><label>Plan</label><p style="font-size:11px;line-height:1.5">'+xe(c.pl)+'</p></div>':'')+'</div>';}).join(''));
-  var rPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openRxFor('+p.id+')">+ Nueva Receta</button></div>'+(pr.length===0?'<div class="empty"><div class="eic">&#128138;</div><h3>Sin recetas</h3></div>':pr.map(function(r){var isOwn=cu&&r.createdBy===cu.uid;var autor=r.createdByName?'<div style="font-size:10px;color:var(--mu);margin-bottom:6px">&#128100; Emitida por: <strong>'+xe(r.createdByName)+'</strong></div>':'';return autor+rxPaper(r,p);}).join('')+'<button class="btn bs btn-sm" onclick="window.print()">Imprimir</button>');
-  var lPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bg-btn btn-sm" onclick="openLabFor('+p.id+')">+ Solicitar</button></div>'+(pl.length===0?'<div class="empty"><div class="eic">&#128300;</div><h3>Sin examenes</h3></div>':pl.map(function(l){var sc=l.est==='Resultado Disponible'?'tg':l.est==='En Proceso'?'tgo':'tgb';var isOwn=cu&&l.createdBy===cu.uid;var autor=l.createdByName?'<span style="font-size:10px;color:var(--mu);margin-left:6px">&#128100; '+xe(l.createdByName)+'</span>':'';var delBtn=isOwn?'<button class="btn bs btn-xs" style="float:right" onclick="delLab('+l.id+')">&#128465;</button>':'';return '<div class="card" style="margin-bottom:9px"><div class="ct">'+xe(l.t)+' - '+fD(l.f)+' <span class="tag '+sc+'">'+xe(l.est)+'</span>'+autor+delBtn+'</div>'+(l.ind?'<p style="font-size:10px;color:var(--mu);margin-bottom:6px">'+xe(l.ind)+'</p>':'')+(l.res?'<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:3px;padding:7px;font-family:DM Mono,monospace;font-size:10px;margin-bottom:6px">'+xe(l.res)+'</div>':'')+(l.int?'<div class="alert ai">'+xe(l.int)+'</div>':'')+'</div>';}).join(''));
+  var cPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openConsFor('+p.id+')">+ Nueva</button></div>'+(pc.length===0?'<div class="empty"><div class="eic">&#129786;</div><h3>Sin consultas</h3></div>':pc.map(function(c){var isOwn=cu&&c.createdBy===cu.uid;var autor=c.createdByName?'<span style="font-size:10px;color:var(--mu);margin-left:6px">&#128100; '+xe(c.createdByName)+'</span>':'';var delBtn=(isOwn&&dentro24h(c.createdAt))?'<button class="btn bs btn-xs" style="float:right" onclick="delCons('+c.id+')">&#128465;</button>':'';return '<div class="card" style="margin-bottom:11px"><div class="ct">'+fD(c.f)+' - '+xe(c.t)+' <span class="tag tg">'+xe(c.dx.split(' ')[0])+'</span>'+autor+delBtn+'</div><div class="g2" style="margin-bottom:8px"><div><label>Motivo</label><p style="font-size:11px">'+xe(c.m)+'</p></div><div><label>Diagnostico</label><p style="font-size:11px">'+xe(c.dx)+'</p></div></div>'+vitBox(c)+(c.an?'<div style="margin-top:7px"><label>Anamnesis</label><p style="font-size:11px;line-height:1.5">'+xe(c.an)+'</p></div>':'')+(c.ex?'<div style="margin-top:5px"><label>Examen Fisico</label><p style="font-size:11px;line-height:1.5">'+xe(c.ex)+'</p></div>':'')+(c.pl?'<div style="margin-top:5px"><label>Plan</label><p style="font-size:11px;line-height:1.5">'+xe(c.pl)+'</p></div>':'')+'</div>';}).join(''));
+  var rPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bp btn-sm" onclick="openRxFor('+p.id+')">+ Nueva Receta</button></div>'+(pr.length===0?'<div class="empty"><div class="eic">&#128138;</div><h3>Sin recetas</h3></div>':pr.map(function(r){var isOwn=cu&&r.createdBy===cu.uid;var autor=r.createdByName?'<div style="font-size:10px;color:var(--mu);margin-bottom:6px">&#128100; Emitida por: <strong>'+xe(r.createdByName)+'</strong>'+(isOwn&&dentro24h(r.createdAt)?'<button class="btn bs btn-xs" style="float:right" onclick="delRx('+r.id+')">&#128465;</button>':'')+'</div>':'';return autor+rxPaper(r,p);}).join('')+'<button class="btn bs btn-sm" onclick="window.print()">Imprimir</button>');
+  var lPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bg-btn btn-sm" onclick="openLabFor('+p.id+')">+ Solicitar</button></div>'+(pl.length===0?'<div class="empty"><div class="eic">&#128300;</div><h3>Sin examenes</h3></div>':pl.map(function(l){var sc=l.est==='Resultado Disponible'?'tg':l.est==='En Proceso'?'tgo':'tgb';var isOwn=cu&&l.createdBy===cu.uid;var autor=l.createdByName?'<span style="font-size:10px;color:var(--mu);margin-left:6px">&#128100; '+xe(l.createdByName)+'</span>':'';var delBtn=(isOwn&&dentro24h(l.createdAt))?'<button class="btn bs btn-xs" style="float:right" onclick="delLab('+l.id+')">&#128465;</button>':'';return '<div class="card" style="margin-bottom:9px"><div class="ct">'+xe(l.t)+' - '+fD(l.f)+' <span class="tag '+sc+'">'+xe(l.est)+'</span>'+autor+delBtn+'</div>'+(l.ind?'<p style="font-size:10px;color:var(--mu);margin-bottom:6px">'+xe(l.ind)+'</p>':'')+(l.res?'<div style="background:var(--sf2);border:1px solid var(--bd);border-radius:3px;padding:7px;font-family:DM Mono,monospace;font-size:10px;margin-bottom:6px">'+xe(l.res)+'</div>':'')+(l.int?'<div class="alert ai">'+xe(l.int)+'</div>':'')+'</div>';}).join(''));
   var ciPane='<div style="text-align:right;margin-bottom:9px"><button class="btn bs btn-sm" onclick="openCitaFor('+p.id+')">+ Agendar</button></div>'+(pci.length===0?'<div class="empty"><div class="eic">&#128197;</div><h3>Sin citas</h3></div>':pci.map(citaCard).join(''));
   var dPane='<div class="card"><div class="ct">Informacion Personal</div><div class="g3"><div class="fg"><label>Nombre</label><input value="'+xe(p.n)+'" readonly></div><div class="fg"><label>Apellido</label><input value="'+xe(p.a)+'" readonly></div><div class="fg"><label>Cedula</label><input value="'+xe(p.ced)+'" readonly></div><div class="fg"><label>Fecha Nac.</label><input value="'+xe(p.dob)+'" readonly></div><div class="fg"><label>Sexo</label><input value="'+xe(p.sex)+'" readonly></div><div class="fg"><label>Tipo Sangre</label><input value="'+xe(p.sg||'--')+'" readonly></div><div class="fg"><label>Telefono</label><input value="'+xe(p.tel)+'" readonly></div><div class="fg"><label>Email</label><input value="'+xe(p.em||'--')+'" readonly></div><div class="fg"><label>Seguro</label><input value="'+xe(p.seg||'--')+'" readonly></div></div><div class="fg"><label>Direccion</label><input value="'+xe(p.dir||'--')+'" readonly></div><div class="fg"><label>Emergencia</label><input value="'+xe(p.emg||'--')+'" readonly></div><div class="g2"><div class="fg"><label>Alergias</label><textarea readonly style="background:var(--bg)">'+xe(p.alg||'--')+'</textarea></div><div class="fg"><label>Antecedentes</label><textarea readonly style="background:var(--bg)">'+xe(p.ant||'--')+'</textarea></div></div><div class="fg"><label>Antecedentes Familiares</label><textarea readonly style="background:var(--bg)">'+xe(p.antf||'--')+'</textarea></div></div>';
   setMain(
@@ -993,8 +1267,9 @@ function updateHdrNom(){
   var nom=CFG.doc||'Medico';
   var partes=nom.replace(/^Dr\.?\s*/i,'').split(' ');
   var ini=(partes[0]?partes[0][0]:'M')+(partes[1]?partes[1][0]:'');
-  var hn=ge('hdr-nom');if(hn)hn.textContent=nom;
-  var hi=ge('hdr-ini');if(hi)hi.textContent=ini.toUpperCase();
+  var hn=ge('hdr-nom');if(hn)hn.textContent=nom+(isAdmin()?' ⚙':' ');
+  var hi=ge('hdr-ini');if(hi){hi.textContent=ini.toUpperCase();hi.style.background=isAdmin()?'#c0392b':'';}
+  showAdminBtn();
 }
 
 /* SAVE ACTIONS */
@@ -1012,7 +1287,7 @@ function saveCons(){
   var pid=parseInt(gv('nc-p')),m=gv('nc-m').trim();
   if(!m){toast('El motivo es requerido','err');return;}
   var cu=window._currentUser;
-  var obj={id:Date.now(),pid:pid,f:gv('nc-f')||TODAY,t:gv('nc-t'),m:m,ta:gv('nc-ta'),fc:gv('nc-fc'),tp:gv('nc-tp'),o2:gv('nc-o2'),gl:gv('nc-gl'),pe:gv('nc-pe'),ta2:gv('nc-ta2'),fr:gv('nc-fr'),pa:gv('nc-pa'),an:gv('nc-an'),ex:gv('nc-ex'),dx:gv('nc-dx')||'Sin diagnostico',es:gv('nc-es'),pl:gv('nc-pl'),px:gv('nc-px'),ob:gv('nc-ob'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
+  var obj={id:Date.now(),pid:pid,f:gv('nc-f')||TODAY,t:gv('nc-t'),m:m,ta:gv('nc-ta'),fc:gv('nc-fc'),tp:gv('nc-tp'),o2:gv('nc-o2'),gl:gv('nc-gl'),pe:gv('nc-pe'),ta2:gv('nc-ta2'),fr:gv('nc-fr'),pa:gv('nc-pa'),an:gv('nc-an'),ex:gv('nc-ex'),dx:gv('nc-dx')||'Sin diagnostico',es:gv('nc-es'),pl:gv('nc-pl'),px:gv('nc-px'),ob:gv('nc-ob'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||'',createdAt:Date.now()};
   CONS.push(obj);
   if(window._db){fbSave('consultas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moCons');renderSide();badges();
@@ -1025,7 +1300,7 @@ function saveCita(){
   var pid=parseInt(gv('ci-p')),f=gv('ci-f'),h=gv('ci-h');
   if(!f||!h){toast('Fecha y hora requeridas','err');return;}
   var cu=window._currentUser;
-  var obj={id:Date.now(),pid:pid,f:f,h:h,t:gv('ci-t'),d:gv('ci-d'),n:gv('ci-n'),e:gv('ci-e'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
+  var obj={id:Date.now(),pid:pid,f:f,h:h,t:gv('ci-t'),d:gv('ci-d'),n:gv('ci-n'),e:gv('ci-e'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||'',createdAt:Date.now()};
   CITAS.push(obj);
   if(window._db){fbSave('citas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moCita');badges();
@@ -1040,7 +1315,7 @@ function saveRx(){
   if(!meds.length){toast('Agregue al menos un medicamento','err');return;}
   var num='RX-'+new Date().getFullYear()+'-'+String(rxN++).padStart(3,'0');
   var cu=window._currentUser;
-  var obj={id:Date.now(),pid:pid,f:gv('rx-f')||TODAY,num:num,dx:gv('rx-dx')||'--',meds:meds,ind:gv('rx-ind'),obs:gv('rx-obs'),vd:gv('rx-vd'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
+  var obj={id:Date.now(),pid:pid,f:gv('rx-f')||TODAY,num:num,dx:gv('rx-dx')||'--',meds:meds,ind:gv('rx-ind'),obs:gv('rx-obs'),vd:gv('rx-vd'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||'',createdAt:Date.now()};
   RXS.push(obj);
   if(window._db){fbSave('recetas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   var rn=ge('rx-num');if(rn)rn.value='RX-'+new Date().getFullYear()+'-'+String(rxN).padStart(3,'0');
@@ -1052,7 +1327,7 @@ function saveRx(){
 function saveLab(){
   var pid=parseInt(gv('lb-p'));
   var cu=window._currentUser;
-  var obj={id:Date.now(),pid:pid,f:gv('lb-f')||TODAY,t:gv('lb-t'),ind:gv('lb-ind'),est:gv('lb-est'),res:gv('lb-res'),int:gv('lb-int'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
+  var obj={id:Date.now(),pid:pid,f:gv('lb-f')||TODAY,t:gv('lb-t'),ind:gv('lb-ind'),est:gv('lb-est'),res:gv('lb-res'),int:gv('lb-int'),createdBy:cu?cu.uid:'',createdByName:CFG.doc||'',createdAt:Date.now()};
   LABS.push(obj);
   if(window._db){fbSave('laboratorio',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moLab');badges();
@@ -1079,7 +1354,7 @@ function saveFac(){
   var tax=base*0.07,tot=sub+tax;
   var num='FAC-'+new Date().getFullYear()+'-'+String(facN++).padStart(3,'0');
   var cu=window._currentUser;
-  var obj={id:Date.now(),pid:pid,f:gv('fc-f')||TODAY,num:num,mp:gv('fc-mp'),items:items,sub:sub,examt:examt,base:base,tax:tax,tot:tot,n:gv('fc-n'),est:'Pendiente',createdBy:cu?cu.uid:'',createdByName:CFG.doc||''};
+  var obj={id:Date.now(),pid:pid,f:gv('fc-f')||TODAY,num:num,mp:gv('fc-mp'),items:items,sub:sub,examt:examt,base:base,tax:tax,tot:tot,n:gv('fc-n'),est:'Pendiente',createdBy:cu?cu.uid:'',createdByName:CFG.doc||'',createdAt:Date.now()};
   FACS.push(obj);
   if(window._db){fbSave('facturas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moFac');
@@ -1800,8 +2075,32 @@ window._loadAllData = async function(){
     FACS=[];snap.forEach(function(d){FACS.push(Object.assign({},d.data(),{_fid:d.id}));});
     // Cargar configuracion
     var cfgDoc=await fs.getDocs(fs.collection(db,'config'));
-    cfgDoc.forEach(function(d){if(d.id==='clinica')Object.assign(CFG,d.data());});
+    cfgDoc.forEach(function(d){
+      if(d.id==='clinica')Object.assign(CFG,d.data());
+      if(d.id==='admin'){
+        var ad=d.data();
+        ADMIN_EMAIL=ad.email||'';
+        ADMIN_UID=ad.uid||'';
+      }
+    });
+    // Si no existe admin registrado, el usuario actual SE CONVIERTE en admin maestro
+    var cu=window._currentUser;
+    if(!ADMIN_EMAIL && !ADMIN_UID && cu){
+      ADMIN_EMAIL=cu.email||'';
+      ADMIN_UID=cu.uid||'';
+      await fs.setDoc(fs.doc(db,'config','admin'),{
+        email:ADMIN_EMAIL, uid:ADMIN_UID,
+        registradoEn:Date.now(),
+        nombre:CFG.doc||cu.email
+      });
+      toast('Cuenta registrada como Administrador Maestro ✓');
+    }
+    // Cargar log de auditoría
+    var aSnap=await fs.getDocs(fs.collection(db,'auditoria'));
+    AUDIT_LOG=[];aSnap.forEach(function(d){AUDIT_LOG.push(d.data());});
+    AUDIT_LOG.sort(function(a,b){return b.ts-a.ts;});
     updateHdrNom();
+    showAdminBtn();
     // Iniciar app
     fillSel();renderSide();badges();rDash();
     toast('Datos cargados desde Firebase ✓');
