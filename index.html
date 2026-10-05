@@ -6,6 +6,48 @@
 <title>MediCare Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, addDoc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyACsfJhGlOjSVw31PM4zZzzB7Sop5tsnRs",
+  authDomain: "medicare-pro-e7fef.firebaseapp.com",
+  projectId: "medicare-pro-e7fef",
+  storageBucket: "medicare-pro-e7fef.firebasestorage.app",
+  messagingSenderId: "339063342220",
+  appId: "1:339063342220:web:1d5d426098ed3d2fab27a9",
+  measurementId: "G-XBGR7FT1TT"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Exponer globalmente para uso en funciones JS clásico
+window._db = db;
+window._auth = auth;
+window._fs = { collection, doc, getDocs, addDoc, setDoc, deleteDoc, onSnapshot, query, orderBy };
+window._signIn = (email, pass) => signInWithEmailAndPassword(auth, email, pass);
+window._signOut = () => signOut(auth);
+window._createUser = (email, pass) => createUserWithEmailAndPassword(auth, email, pass);
+
+// Escuchar cambios de autenticación
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    window._currentUser = user;
+    document.getElementById('fb-login-screen').style.display = 'none';
+    document.getElementById('fb-app').style.display = 'flex';
+    window._loadAllData();
+  } else {
+    window._currentUser = null;
+    document.getElementById('fb-login-screen').style.display = 'flex';
+    document.getElementById('fb-app').style.display = 'none';
+  }
+});
+</script>
 <style>
 :root{
   --bg:#f0ece4;--sf:#faf8f4;--sf2:#f2ede6;--bd:#d8d0c4;--bd2:#b8afa3;
@@ -252,12 +294,38 @@ input[readonly]{background:var(--bg);color:var(--mu)}
 </style>
 </head>
 <body>
+
+<!-- PANTALLA DE LOGIN -->
+<div id="fb-login-screen" style="display:flex;align-items:center;justify-content:center;height:100vh;background:#f0ece4;font-family:'DM Sans',sans-serif;">
+  <div style="background:#faf8f4;border:1px solid #d8d0c4;border-radius:12px;padding:36px 40px;width:360px;box-shadow:0 8px 28px rgba(26,23,20,.13);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1714;">&#9877; MediCare Pro</div>
+      <div style="font-size:12px;color:#6b6460;margin-top:4px;">Sistema de Historias Clínicas</div>
+    </div>
+    <div id="fb-login-err" style="display:none;background:#fdf0f0;border:1px solid #f0d0d0;border-radius:6px;padding:8px 12px;font-size:11px;color:#8b2020;margin-bottom:14px;"></div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px;font-weight:600;color:#6b6460;display:block;margin-bottom:4px;">Correo electrónico</label>
+      <input id="fb-email" type="email" placeholder="doctor@clinica.com" style="width:100%;padding:9px 12px;border:1px solid #d8d0c4;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:#fff;">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:11px;font-weight:600;color:#6b6460;display:block;margin-bottom:4px;">Contraseña</label>
+      <input id="fb-pass" type="password" placeholder="••••••••" style="width:100%;padding:9px 12px;border:1px solid #d8d0c4;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:#fff;" onkeydown="if(event.key==='Enter')fbLogin()">
+    </div>
+    <button onclick="fbLogin()" style="width:100%;padding:10px;background:#2d5a3d;color:#fff;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px;">Ingresar</button>
+    <button onclick="fbRegister()" style="width:100%;padding:10px;background:#f0ece4;color:#2d5a3d;border:1px solid #2d5a3d;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">Crear cuenta nueva</button>
+    <div style="text-align:center;font-size:10px;color:#9c948e;margin-top:16px;">Powered by Firebase · Datos seguros en la nube</div>
+  </div>
+</div>
+
+<!-- APP PRINCIPAL (oculta hasta login) -->
+<div id="fb-app" style="display:none;flex-direction:column;height:100vh;">
 <header>
   <div class="logo">&#9877; MediCare Pro <em>v2</em></div>
   <div class="hbtns">
     <button class="hb hi" onclick="openMo('moPac')">+ Paciente</button>
     <button class="hb" onclick="openMo('moCons')">+ Consulta</button>
     <button class="hb" onclick="openMo('moCita')">+ Cita</button>
+    <button class="hb" onclick="fbLogout()" title="Cerrar sesión" style="margin-left:8px;">&#x23FB;</button>
     <button class="hb" onclick="openMo('moRx')">Rx Receta</button>
     <button class="hb" onclick="openMo('moLab')">Lab</button>
     <button class="hb" onclick="openMo('moFac')">Factura</button>
@@ -921,7 +989,9 @@ function saveCfg(){var map={doc:'cfg-doc',esp:'cfg-esp',mp:'cfg-mp',ruc:'cfg-ruc
 function savePac(){
   var n=gv('np-n').trim(),a=gv('np-a').trim();
   if(!n||!a){toast('Nombre y apellido requeridos','err');return;}
-  PACS.unshift({id:Date.now(),n:n,a:a,ced:gv('np-ced'),dob:gv('np-dob'),sex:gv('np-sex'),tel:gv('np-tel'),em:gv('np-em'),sg:gv('np-sg'),ec:gv('np-ec'),ocu:gv('np-ocu'),seg:gv('np-seg'),pol:gv('np-pol'),dir:gv('np-dir'),emg:gv('np-emg'),alg:gv('np-alg')||'Ninguna conocida',ant:gv('np-ant'),antf:gv('np-antf')});
+  var obj={id:Date.now(),n:n,a:a,ced:gv('np-ced'),dob:gv('np-dob'),sex:gv('np-sex'),tel:gv('np-tel'),em:gv('np-em'),sg:gv('np-sg'),ec:gv('np-ec'),ocu:gv('np-ocu'),seg:gv('np-seg'),pol:gv('np-pol'),dir:gv('np-dir'),emg:gv('np-emg'),alg:gv('np-alg')||'Ninguna conocida',ant:gv('np-ant'),antf:gv('np-antf')};
+  PACS.unshift(obj);
+  if(window._db){fbSave('pacientes',obj).then(function(fid){if(fid)obj._fid=fid;});}
   fillSel();closeMo('moPac');renderSide();
   if(curMod==='pacs')rPacs();
   toast('Paciente registrado');
@@ -929,7 +999,9 @@ function savePac(){
 function saveCons(){
   var pid=parseInt(gv('nc-p')),m=gv('nc-m').trim();
   if(!m){toast('El motivo es requerido','err');return;}
-  CONS.push({id:Date.now(),pid:pid,f:gv('nc-f')||TODAY,t:gv('nc-t'),m:m,ta:gv('nc-ta'),fc:gv('nc-fc'),tp:gv('nc-tp'),o2:gv('nc-o2'),gl:gv('nc-gl'),pe:gv('nc-pe'),ta2:gv('nc-ta2'),fr:gv('nc-fr'),pa:gv('nc-pa'),an:gv('nc-an'),ex:gv('nc-ex'),dx:gv('nc-dx')||'Sin diagnostico',es:gv('nc-es'),pl:gv('nc-pl'),px:gv('nc-px'),ob:gv('nc-ob')});
+  var obj={id:Date.now(),pid:pid,f:gv('nc-f')||TODAY,t:gv('nc-t'),m:m,ta:gv('nc-ta'),fc:gv('nc-fc'),tp:gv('nc-tp'),o2:gv('nc-o2'),gl:gv('nc-gl'),pe:gv('nc-pe'),ta2:gv('nc-ta2'),fr:gv('nc-fr'),pa:gv('nc-pa'),an:gv('nc-an'),ex:gv('nc-ex'),dx:gv('nc-dx')||'Sin diagnostico',es:gv('nc-es'),pl:gv('nc-pl'),px:gv('nc-px'),ob:gv('nc-ob')};
+  CONS.push(obj);
+  if(window._db){fbSave('consultas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moCons');renderSide();badges();
   if(selPac&&selPac.id===pid)showPac(pid);
   else if(curMod==='cons')rCons();
@@ -939,7 +1011,9 @@ function saveCons(){
 function saveCita(){
   var pid=parseInt(gv('ci-p')),f=gv('ci-f'),h=gv('ci-h');
   if(!f||!h){toast('Fecha y hora requeridas','err');return;}
-  CITAS.push({id:Date.now(),pid:pid,f:f,h:h,t:gv('ci-t'),d:gv('ci-d'),n:gv('ci-n'),e:gv('ci-e')});
+  var obj={id:Date.now(),pid:pid,f:f,h:h,t:gv('ci-t'),d:gv('ci-d'),n:gv('ci-n'),e:gv('ci-e')};
+  CITAS.push(obj);
+  if(window._db){fbSave('citas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moCita');badges();
   if(curMod==='agenda')rAgenda();
   else if(curMod==='dash')rDash();
@@ -950,9 +1024,11 @@ function saveRx(){
   var meds=[];
   document.querySelectorAll('#rxmeds .mrw').forEach(function(row){var n=row.querySelector('.rn').value.trim();if(n)meds.push({n:n,d:row.querySelector('.rd').value,i:row.querySelector('.ri').value,di:row.querySelector('.rdi').value});});
   if(!meds.length){toast('Agregue al menos un medicamento','err');return;}
-  var num='RX-2026-'+String(rxN++).padStart(3,'0');
-  RXS.push({id:Date.now(),pid:pid,f:gv('rx-f')||TODAY,num:num,dx:gv('rx-dx')||'--',meds:meds,ind:gv('rx-ind'),obs:gv('rx-obs'),vd:gv('rx-vd')});
-  var rn=ge('rx-num');if(rn)rn.value='RX-2026-'+String(rxN).padStart(3,'0');
+  var num='RX-'+new Date().getFullYear()+'-'+String(rxN++).padStart(3,'0');
+  var obj={id:Date.now(),pid:pid,f:gv('rx-f')||TODAY,num:num,dx:gv('rx-dx')||'--',meds:meds,ind:gv('rx-ind'),obs:gv('rx-obs'),vd:gv('rx-vd')};
+  RXS.push(obj);
+  if(window._db){fbSave('recetas',obj).then(function(fid){if(fid)obj._fid=fid;});}
+  var rn=ge('rx-num');if(rn)rn.value='RX-'+new Date().getFullYear()+'-'+String(rxN).padStart(3,'0');
   closeMo('moRx');
   if(selPac&&selPac.id===pid)showPac(pid);
   else if(curMod==='rxs')rRxs();
@@ -960,7 +1036,9 @@ function saveRx(){
 }
 function saveLab(){
   var pid=parseInt(gv('lb-p'));
-  LABS.push({id:Date.now(),pid:pid,f:gv('lb-f')||TODAY,t:gv('lb-t'),ind:gv('lb-ind'),est:gv('lb-est'),res:gv('lb-res'),int:gv('lb-int')});
+  var obj={id:Date.now(),pid:pid,f:gv('lb-f')||TODAY,t:gv('lb-t'),ind:gv('lb-ind'),est:gv('lb-est'),res:gv('lb-res'),int:gv('lb-int')};
+  LABS.push(obj);
+  if(window._db){fbSave('laboratorio',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moLab');badges();
   if(selPac&&selPac.id===pid)showPac(pid);
   else if(curMod==='lab')rLab();
@@ -983,8 +1061,10 @@ function saveFac(){
   var examt=items.filter(function(i){return i.ex;}).reduce(function(s,i){return s+i.p*i.q;},0);
   var base=sub-examt;
   var tax=base*0.07,tot=sub+tax;
-  var num='FAC-2026-'+String(facN++).padStart(3,'0');
-  FACS.push({id:Date.now(),pid:pid,f:gv('fc-f')||TODAY,num:num,mp:gv('fc-mp'),items:items,sub:sub,examt:examt,base:base,tax:tax,tot:tot,n:gv('fc-n'),est:'Pendiente'});
+  var num='FAC-'+new Date().getFullYear()+'-'+String(facN++).padStart(3,'0');
+  var obj={id:Date.now(),pid:pid,f:gv('fc-f')||TODAY,num:num,mp:gv('fc-mp'),items:items,sub:sub,examt:examt,base:base,tax:tax,tot:tot,n:gv('fc-n'),est:'Pendiente'};
+  FACS.push(obj);
+  if(window._db){fbSave('facturas',obj).then(function(fid){if(fid)obj._fid=fid;});}
   closeMo('moFac');
   if(curMod==='fac')rFac();
   toast('Factura '+num+' - $'+tot.toFixed(2));
@@ -1647,14 +1727,101 @@ function rxdGeneratePDF(){
 }
 /* ═══════════════════════════════════════════════════════ */
 
-/* INIT */
+/* ═══════════ FIREBASE AUTH UI ═══════════ */
+function fbLogin(){
+  var email=document.getElementById('fb-email').value.trim();
+  var pass=document.getElementById('fb-pass').value;
+  var err=document.getElementById('fb-login-err');
+  err.style.display='none';
+  if(!email||!pass){err.textContent='Ingrese correo y contraseña.';err.style.display='block';return;}
+  window._signIn(email,pass).catch(function(e){
+    err.textContent='Error: '+fbErrMsg(e.code);
+    err.style.display='block';
+  });
+}
+function fbRegister(){
+  var email=document.getElementById('fb-email').value.trim();
+  var pass=document.getElementById('fb-pass').value;
+  var err=document.getElementById('fb-login-err');
+  err.style.display='none';
+  if(!email||!pass){err.textContent='Ingrese correo y contraseña.';err.style.display='block';return;}
+  if(pass.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';err.style.display='block';return;}
+  window._createUser(email,pass).catch(function(e){
+    err.textContent='Error: '+fbErrMsg(e.code);
+    err.style.display='block';
+  });
+}
+function fbErrMsg(code){
+  var m={'auth/user-not-found':'Usuario no encontrado.','auth/wrong-password':'Contraseña incorrecta.','auth/email-already-in-use':'El correo ya está registrado.','auth/invalid-email':'Correo inválido.','auth/weak-password':'Contraseña muy débil.'};
+  return m[code]||code;
+}
+function fbLogout(){
+  if(confirm('¿Cerrar sesión?'))window._signOut();
+}
+
+/* ═══════════ FIREBASE FIRESTORE CRUD ═══════════ */
+window._loadAllData = async function(){
+  try {
+    var db=window._db, fs=window._fs;
+    // Cargar pacientes
+    var snap=await fs.getDocs(fs.collection(db,'pacientes'));
+    PACS=[];snap.forEach(function(d){PACS.push(Object.assign({},d.data(),{_fid:d.id}));});
+    // Cargar consultas
+    snap=await fs.getDocs(fs.collection(db,'consultas'));
+    CONS=[];snap.forEach(function(d){CONS.push(Object.assign({},d.data(),{_fid:d.id}));});
+    // Cargar recetas
+    snap=await fs.getDocs(fs.collection(db,'recetas'));
+    RXS=[];snap.forEach(function(d){RXS.push(Object.assign({},d.data(),{_fid:d.id}));});
+    // Cargar citas
+    snap=await fs.getDocs(fs.collection(db,'citas'));
+    CITAS=[];snap.forEach(function(d){CITAS.push(Object.assign({},d.data(),{_fid:d.id}));});
+    // Cargar laboratorio
+    snap=await fs.getDocs(fs.collection(db,'laboratorio'));
+    LABS=[];snap.forEach(function(d){LABS.push(Object.assign({},d.data(),{_fid:d.id}));});
+    // Cargar facturas
+    snap=await fs.getDocs(fs.collection(db,'facturas'));
+    FACS=[];snap.forEach(function(d){FACS.push(Object.assign({},d.data(),{_fid:d.id}));});
+    // Cargar configuracion
+    var cfgDoc=await fs.getDocs(fs.collection(db,'config'));
+    cfgDoc.forEach(function(d){if(d.id==='clinica')Object.assign(CFG,d.data());});
+    // Iniciar app
+    fillSel();renderSide();badges();rDash();
+    toast('Datos cargados desde Firebase ✓');
+  } catch(e){
+    toast('Error cargando datos: '+e.message,'err');
+    // Iniciar con datos vacíos si falla
+    PACS=[];CONS=[];RXS=[];CITAS=[];LABS=[];FACS=[];
+    fillSel();renderSide();badges();rDash();
+  }
+};
+
+async function fbSave(col, data, fid){
+  try {
+    var db=window._db, fs=window._fs;
+    if(fid){
+      await fs.setDoc(fs.doc(db,col,fid),data,{merge:true});
+    } else {
+      var ref=await fs.addDoc(fs.collection(db,col),data);
+      return ref.id;
+    }
+    return fid;
+  } catch(e){
+    toast('Error guardando en Firebase: '+e.message,'err');
+    return null;
+  }
+}
+
+/* ═══════════ INIT ═══════════ */
 (function(){
   var vd=new Date();vd.setDate(vd.getDate()+30);var vds=vd.toISOString().split('T')[0];
   ['nc-f','ci-f','rx-f','lb-f','fc-f'].forEach(function(id){var e=ge(id);if(e)e.value=TODAY;});
   var rn=ge('rx-num');if(rn)rn.value='RX-2026-00'+rxN;
   var rv=ge('rx-vd');if(rv)rv.value=vds;
-  fillSel();renderSide();badges();rDash();
+  // Los datos se cargan desde Firebase al hacer login
+  // Si no hay Firebase disponible aún, renderizar vacío
+  if(!window._db){fillSel();renderSide();badges();rDash();}
 })();
 </script>
+</div><!-- fin fb-app -->
 </body>
 </html>
