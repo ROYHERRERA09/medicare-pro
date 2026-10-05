@@ -330,7 +330,7 @@ input[readonly]{background:var(--bg);color:var(--mu)}
     <button class="hb" onclick="openMo('moLab')">Lab</button>
     <button class="hb" onclick="openMo('moFac')">Factura</button>
   </div>
-  <div class="drchip"><div class="drav">JG</div><div style="font-size:11px;font-weight:600">Dr. Garcia</div></div>
+  <div class="drchip"><div class="drav" id="hdr-ini">JG</div><div style="font-size:11px;font-weight:600" id="hdr-nom">Dr. Garcia</div></div>
 </header>
 <div class="app">
 <aside>
@@ -983,7 +983,20 @@ function rCfg(){
     +'<div class="alert ai">Los cambios se aplican a recetas y facturas nuevas. Al crear una factura, marque la casilla <strong>Ex.</strong> para cada servicio exento de ITBMS.</div>'
     +'</div>');
 }
-function saveCfg(){var map={doc:'cfg-doc',esp:'cfg-esp',mp:'cfg-mp',ruc:'cfg-ruc',cli:'cfg-cli',dir:'cfg-dir',tel:'cfg-tel',email:'cfg-em'};Object.keys(map).forEach(function(k){var e=ge(map[k]);if(e)CFG[k]=e.value;});toast('Configuracion guardada');}
+function saveCfg(){
+  var map={doc:'cfg-doc',esp:'cfg-esp',mp:'cfg-mp',ruc:'cfg-ruc',cli:'cfg-cli',dir:'cfg-dir',tel:'cfg-tel',email:'cfg-em'};
+  Object.keys(map).forEach(function(k){var e=ge(map[k]);if(e)CFG[k]=e.value;});
+  updateHdrNom();
+  if(window._db){fbSave('config',CFG,'clinica');}
+  toast('Configuracion guardada');
+}
+function updateHdrNom(){
+  var nom=CFG.doc||'Medico';
+  var partes=nom.replace(/^Dr\.?\s*/i,'').split(' ');
+  var ini=(partes[0]?partes[0][0]:'M')+(partes[1]?partes[1][0]:'');
+  var hn=ge('hdr-nom');if(hn)hn.textContent=nom;
+  var hi=ge('hdr-ini');if(hi)hi.textContent=ini.toUpperCase();
+}
 
 /* SAVE ACTIONS */
 function savePac(){
@@ -1784,6 +1797,7 @@ window._loadAllData = async function(){
     // Cargar configuracion
     var cfgDoc=await fs.getDocs(fs.collection(db,'config'));
     cfgDoc.forEach(function(d){if(d.id==='clinica')Object.assign(CFG,d.data());});
+    updateHdrNom();
     // Iniciar app
     fillSel();renderSide();badges();rDash();
     toast('Datos cargados desde Firebase ✓');
